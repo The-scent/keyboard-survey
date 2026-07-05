@@ -1173,9 +1173,279 @@ function exportAllData() {
 }
 
 // ================================================================
+//  分享推荐结果 —— 生成图片 + 结果链接
+// ================================================================
+
+// 1. 生成推荐结果图片
+var _lastCanvas = null;
+
+function shareResultImage() {
+  var content = $('#recommendationContent');
+  if (!content || content.innerHTML.trim() === '') {
+    showToast('请先完成测评');
+    return;
+  }
+
+  var w = 750;  // 2x 尺寸 (375*2)，清晰
+  var h = 1100;
+  var canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  var ctx = canvas.getContext('2d');
+  _lastCanvas = canvas;
+
+  // 背景
+  var grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#4F6EF7');
+  grad.addColorStop(0.25, '#7C5CFC');
+  grad.addColorStop(0.5, '#F5F7FB');
+  grad.addColorStop(1, '#F5F7FB');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // 顶部标题
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 36px "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⌨️  键盘选型结果', w/2, 72);
+
+  ctx.font = '22px "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText('根据你的偏好，为你推荐以下方案', w/2, 108);
+
+  // 从 DOM 中读取数据
+  var tags = content.querySelectorAll('.rec-tag');
+  var details = content.querySelectorAll('.rec-detail-item');
+  var models = content.querySelectorAll('.model-item');
+
+  // 标签
+  var y = 160;
+  if (tags.length > 0) {
+    ctx.fillStyle = 'white';
+    ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'left';
+    var tagX = 40;
+    tags.forEach(function(tag) {
+      var text = tag.textContent.trim();
+      var tw = ctx.measureText(text).width + 32;
+      if (tagX + tw > w - 40) { tagX = 40; y += 42; }
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      roundRect(ctx, tagX, y, tw, 38, 19);
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.font = '16px "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.fillText(text, tagX + 16, y + 26);
+      tagX += tw + 10;
+    });
+    y += 56;
+  }
+
+  // 白色卡片背景
+  var cardY = y;
+  var cardH = 0;
+
+  // 算一下卡片高度
+  var detailCount = details.length;
+  var modelCount = models.length;
+  var detailH = detailCount * 48 + 20;
+  var modelH = modelCount * 80 + 30;
+  cardH = detailH + modelH + 40;
+
+  // 绘制卡片
+  ctx.fillStyle = 'white';
+  roundRect(ctx, 30, cardY, w - 60, cardH, 16);
+  ctx.fill();
+  ctx.shadowColor = 'rgba(0,0,0,0.08)';
+  ctx.shadowBlur = 30;
+  roundRect(ctx, 30, cardY, w - 60, cardH, 16);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+
+  // 详细配置
+  var dy = cardY + 16;
+  ctx.textAlign = 'left';
+  details.forEach(function(d) {
+    var emoji = d.querySelector('.emoji') ? d.querySelector('.emoji').textContent : '';
+    var labelEl = d.querySelectorAll('span')[1];
+    var valEl = d.querySelectorAll('span')[2];
+    var label = labelEl ? labelEl.textContent.trim() : '';
+    var val = valEl ? valEl.textContent.trim() : '';
+
+    ctx.fillStyle = '#636E72';
+    ctx.font = '15px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText(label, 70, dy + 28);
+
+    ctx.fillStyle = '#2D3436';
+    ctx.font = 'bold 17px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText(val, 160, dy + 28);
+
+    // 分隔线
+    ctx.fillStyle = '#F0F0F0';
+    ctx.fillRect(50, dy + 44, w - 100, 1);
+
+    dy += 48;
+  });
+
+  // 推荐型号
+  dy += 8;
+  ctx.fillStyle = '#2D3436';
+  ctx.font = 'bold 18px "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillText('🏆 推荐键盘', 50, dy + 8);
+  dy += 36;
+
+  var rankColors = ['#4F6EF7', '#00B894', '#636E72'];
+  models.forEach(function(m, idx) {
+    var el = m.querySelector('.name');
+    var reasonEl = m.querySelector('.reason');
+    var priceEl = m.querySelector('.price');
+    var name = el ? el.childNodes[0].textContent.trim() : '';
+    var reason = reasonEl ? reasonEl.textContent.trim() : '';
+    var price = priceEl ? priceEl.textContent.trim() : '';
+
+    // 排名圆
+    ctx.fillStyle = rankColors[idx] || '#999';
+    ctx.beginPath();
+    ctx.arc(65, dy + 22, 18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('' + (idx + 1), 65, dy + 28);
+
+    // 名称
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#2D3436';
+    ctx.font = 'bold 17px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText(name, 96, dy + 22);
+
+    // 价格
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#4F6EF7';
+    ctx.font = 'bold 16px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('¥' + price, w - 50, dy + 22);
+
+    // 推荐理由
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#636E72';
+    ctx.font = '14px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillText('推荐：' + reason, 96, dy + 48);
+
+    // 分隔线
+    ctx.fillStyle = '#F0F0F0';
+    ctx.fillRect(50, dy + 68, w - 100, 1);
+
+    dy += 80;
+  });
+
+  // 底部
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#B0B0B0';
+  ctx.font = '14px "PingFang SC", "Microsoft YaHei", sans-serif';
+  ctx.fillText('由「键盘选型助手」生成 · 扫码即可测评', w/2, h - 30);
+
+  // 显示在弹窗
+  var container = $('#resultCanvasContainer');
+  container.innerHTML = '';
+  container.appendChild(canvas);
+  canvas.style.width = '100%';
+  canvas.style.height = 'auto';
+  canvas.style.maxWidth = '360px';
+  canvas.style.margin = '0 auto';
+  canvas.style.borderRadius = '12px';
+
+  document.getElementById('shareImageOverlay').classList.add('show');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function saveResultImage() {
+  if (!_lastCanvas) { showToast('请先生成图片'); return; }
+  var link = document.createElement('a');
+  link.download = '键盘推荐结果_' + new Date().toISOString().slice(0,10) + '.png';
+  link.href = _lastCanvas.toDataURL('image/png');
+  link.click();
+  showToast('图片已保存');
+}
+
+// 2. 复制结果链接（URL hash 编码）
+function copyResultLink() {
+  if (!answers || Object.keys(answers).length === 0) {
+    showToast('请先完成测评');
+    return;
+  }
+
+  // 压缩编码：只保留核心推荐字段
+  var core = {};
+  var fields = ['budget', 'use_case', 'switch_pref', 'switch_feel', 'layout', 'wireless', 'features', 'sound', 'environment', 'experience', 'numpad', 'appearance'];
+  for (var i = 0; i < fields.length; i++) {
+    if (answers[fields[i]] !== undefined && answers[fields[i]] !== null) {
+      core[fields[i]] = answers[fields[i]];
+    }
+  }
+
+  var json = JSON.stringify(core);
+  var encoded = btoa(encodeURIComponent(json));
+  var url = window.location.protocol + '//' + window.location.host + window.location.pathname + '#r=' + encoded;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() {
+      showToast('✅ 结果链接已复制！朋友打开直接看推荐');
+    }).catch(function() { fallbackCopy(url); showToast('✅ 结果链接已复制！'); });
+  } else { fallbackCopy(url); showToast('✅ 结果链接已复制！'); }
+}
+
+// 3. 从 URL hash 恢复结果
+function loadResultFromHash() {
+  var hash = window.location.hash;
+  if (!hash || hash.indexOf('#r=') !== 0) return false;
+
+  try {
+    var encoded = hash.slice(3);
+    var json = decodeURIComponent(atob(encoded));
+    var data = JSON.parse(json);
+    if (!data || Object.keys(data).length < 3) return false;
+
+    // 还原到 answers
+    for (var key in data) {
+      if (data.hasOwnProperty(key)) answers[key] = data[key];
+    }
+
+    // 跳过问卷，直接展示结果
+    var rec = generateRecommendation(answers);
+    renderRecommendation(rec);
+    $('#surveyContainer').style.display = 'none';
+    $('#resultScreen').classList.add('show');
+    document.title = '⌨️ 键盘推荐结果';
+    submitted = true;
+    return true;
+  } catch(e) {
+    console.log('Hash load failed:', e);
+    return false;
+  }
+}
+
+// ================================================================
 //  启动
 // ================================================================
-document.addEventListener('DOMContentLoaded', renderQuestions);
+document.addEventListener('DOMContentLoaded', function() {
+  // 先检查 URL hash 是否有结果 → 直接展示推荐
+  if (!loadResultFromHash()) {
+    renderQuestions();
+  }
+});
 </script>
 </body>
 </html>
