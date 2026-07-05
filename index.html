@@ -246,6 +246,43 @@
     .btn-secondary { background: #242538; color: var(--text-secondary); }
   }
 
+  /* ---- 答案编辑 ---- */
+  .answer-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .answer-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; background: var(--primary-light); border-radius: 10px;
+    cursor: pointer; transition: all var(--transition); font-size: 13px;
+    border: 1px solid transparent; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .answer-chip:hover { border-color: var(--primary); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(79,110,247,0.15); }
+  .answer-chip:active { transform: scale(0.97); }
+  .answer-chip .chip-q { font-weight: 500; color: var(--text-secondary); }
+  .answer-chip .chip-v { color: var(--primary); font-weight: 600; }
+  .answer-chip .chip-edit { font-size: 12px; opacity: 0.5; }
+  .answer-chip:hover .chip-edit { opacity: 1; }
+
+  .mini-inline-editor {
+    margin-top: 12px; padding: 16px; background: #FAFBFC;
+    border-radius: 12px; border: 1px solid var(--border);
+    animation: fadeInUp 0.25s ease;
+  }
+  .mini-inline-editor .editor-title {
+    font-size: 14px; font-weight: 600; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .mini-inline-editor .editor-title .close-btn {
+    background: none; border: none; font-size: 18px; cursor: pointer;
+    color: var(--text-secondary); padding: 2px 6px; border-radius: 6px;
+  }
+  .mini-inline-editor .editor-title .close-btn:hover { background: var(--border); }
+  .mini-inline-editor .options { gap: 6px; }
+  .mini-inline-editor .option-item { padding: 10px 14px; }
+  .mini-inline-editor .option-item .label { font-size: 14px; }
+  .mini-inline-editor .option-item .desc { font-size: 11px; }
+
+  .dark .mini-inline-editor { background: #2A2B42; }
+
   @media (max-width: 400px) {
     .header { padding: 36px 20px 28px; }
     .header h1 { font-size: 18px; }
@@ -281,6 +318,8 @@
     <h2>你的专属键盘推荐</h2>
     <p>根据你的回答，我们为你推荐以下方案</p>
   </div>
+
+  <div id="answerEditorContainer"></div>
 
   <div id="recommendationContent"></div>
 
@@ -1076,6 +1115,7 @@ function submitSurvey() {
   submitted = true;
 
   var rec = generateRecommendation(answers);
+  renderAnswerSummary(answers);
   renderRecommendation(rec, answers);
 
   $('#surveyContainer').style.display = 'none';
@@ -1161,6 +1201,156 @@ function renderRecommendation(rec, userAnswers) {
   }
 
   container.innerHTML = html;
+}
+
+// ================================================================
+//  结果页内联编辑 — 点击答案直接修改，实时更新推荐
+// ================================================================
+function renderAnswerSummary(userAnswers) {
+  var container = document.getElementById('answerEditorContainer');
+  if (!container || !userAnswers || Object.keys(userAnswers).length === 0) return;
+
+  var showIds = ['budget', 'use_case', 'current_keyboard', 'pain_point', 'layout', 'switch_pref', 'switch_feel', 'numpad', 'wireless', 'features', 'sound', 'appearance', 'environment', 'experience'];
+  var html = '<div class="rec-card" style="border-left-color:var(--success);">';
+  html += '  <div class="tag" style="background:#E8F8F0;color:#00B894;">✏️ 你的回答（点击修改）</div>';
+  html += '  <div class="answer-chips">';
+
+  for (var i = 0; i < showIds.length; i++) {
+    var qId = showIds[i];
+    var val = userAnswers[qId];
+    if (val === undefined || val === null) continue;
+    if (Array.isArray(val) && val.length === 0) continue;
+
+    var q = QUESTIONS.filter(function(qq) { return qq.id === qId; })[0];
+    if (!q || !shouldShow(q)) continue;
+
+    var label = '';
+    if (Array.isArray(val)) {
+      var parts = [];
+      for (var vi = 0; vi < val.length; vi++) {
+        var opt = q.options.filter(function(o) { return o.value === val[vi]; })[0];
+        parts.push(opt ? opt.label.split(' —')[0].trim() : val[vi]);
+      }
+      label = parts.join('、');
+    } else {
+      var opt = q.options.filter(function(o) { return o.value === val; })[0];
+      label = opt ? opt.label.split(' —')[0].trim() : val;
+    }
+
+    html += '<span class="answer-chip" onclick="toggleInlineEditor(\'' + qId + '\')">';
+    html += '  <span class="chip-q">' + q.title.replace('?','').replace('？','').replace('你','') + '</span>';
+    html += '  <span class="chip-v">' + label + '</span>';
+    html += '  <span class="chip-edit">✏️</span>';
+    html += '</span>';
+  }
+
+  html += '  </div>';
+  html += '  <div id="inlineEditorWrap" style="display:none;"></div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function toggleInlineEditor(qId) {
+  var wrap = document.getElementById('inlineEditorWrap');
+  if (!wrap) return;
+
+  if (wrap.dataset.activeQ === qId && wrap.style.display !== 'none') {
+    wrap.style.display = 'none';
+    wrap.dataset.activeQ = '';
+    return;
+  }
+
+  var q = QUESTIONS.filter(function(qq) { return qq.id === qId; })[0];
+  if (!q) return;
+
+  var isMulti = q.type === 'checkbox';
+  var currentVal = answers[qId];
+
+  var html = '<div class="mini-inline-editor">';
+  html += '  <div class="editor-title">';
+  html += '    <span>' + q.title + '</span>';
+  html += '    <button class="close-btn" onclick="document.getElementById(\'inlineEditorWrap\').style.display=\'none\'">&times;</button>';
+  html += '  </div>';
+  html += '  <div class="options" data-q="' + qId + '" data-multi="' + (isMulti ? 1 : 0) + '">';
+
+  for (var i = 0; i < q.options.length; i++) {
+    var opt = q.options[i];
+    var checked = false;
+    if (isMulti && Array.isArray(currentVal)) {
+      checked = currentVal.indexOf(opt.value) !== -1;
+    } else {
+      checked = currentVal === opt.value;
+    }
+    html += '<div class="option-item' + (checked ? ' selected' : '') + '" data-value="' + opt.value + '">';
+    html += '  <span class="' + (isMulti ? 'box' : 'dot') + '"></span>';
+    html += '  <span class="label">' + opt.label + (opt.desc ? '<span class="desc"> — ' + opt.desc + '</span>' : '') + '</span>';
+    html += '</div>';
+  }
+
+  html += '  </div>';
+  if (isMulti) {
+    html += '  <div style="margin-top:10px;text-align:right;"><button class="btn btn-primary" onclick="confirmCheckboxEdit()" style="padding:8px 20px;font-size:14px;">✓ 确认</button></div>';
+  }
+  html += '</div>';
+
+  wrap.innerHTML = html;
+  wrap.style.display = 'block';
+  wrap.dataset.activeQ = qId;
+
+  var opts = wrap.querySelectorAll('.option-item');
+  for (var j = 0; j < opts.length; j++) {
+    (function(el) {
+      el.addEventListener('click', function(e) {
+        if (e.target.closest('.close-btn') || e.target.closest('.btn')) return;
+        var parent = el.closest('.options');
+        var isMulti = parent.dataset.multi === '1';
+        var qId = parent.dataset.q;
+        var val = el.dataset.value;
+
+        if (isMulti) {
+          el.classList.toggle('selected');
+        } else {
+          parent.querySelectorAll('.option-item').forEach(function(s) { s.classList.remove('selected'); });
+          el.classList.add('selected');
+          answers[qId] = val;
+          if (qId === 'switch_pref' && val !== 'describe') {
+            delete answers.switch_feel;
+          }
+          updateRecommendation(qId);
+        }
+      });
+    })(opts[j]);
+  }
+}
+
+function confirmCheckboxEdit() {
+  var wrap = document.getElementById('inlineEditorWrap');
+  var parent = wrap.querySelector('.options');
+  var qId = parent.dataset.q;
+  var selected = parent.querySelectorAll('.option-item.selected');
+  var values = [];
+  selected.forEach(function(el) { values.push(el.dataset.value); });
+  answers[qId] = values;
+  updateRecommendation(qId);
+}
+
+function updateRecommendation(changedQId) {
+  try {
+    var allData = JSON.parse(localStorage.getItem('kb_reco_data') || '[]');
+    if (allData.length > 0) {
+      allData[allData.length - 1][changedQId] = answers[changedQId];
+      localStorage.setItem('kb_reco_data', JSON.stringify(allData));
+    }
+  } catch(e) {}
+
+  var wrap = document.getElementById('inlineEditorWrap');
+  if (wrap) { wrap.style.display = 'none'; wrap.dataset.activeQ = ''; }
+
+  var rec = generateRecommendation(answers);
+  renderAnswerSummary(answers);
+  renderRecommendation(rec, answers);
+  showToast('✅ 推荐已更新');
 }
 
 // ================================================================
@@ -1477,8 +1667,9 @@ function loadResultFromHash() {
       if (data.hasOwnProperty(key)) answers[key] = data[key];
     }
 
-    var rec = generateRecommendation(answers);
-    renderRecommendation(rec, answers);
+	    var rec = generateRecommendation(answers);
+	    renderAnswerSummary(answers);
+	    renderRecommendation(rec, answers);
     $('#surveyContainer').style.display = 'none';
     $('#resultScreen').classList.add('show');
     document.title = '键盘推荐结果';
