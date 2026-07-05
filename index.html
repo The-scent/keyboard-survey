@@ -121,7 +121,6 @@
   }
   .btn-skip:hover { color: var(--primary); }
 
-  /* ===== 推荐结果页 ===== */
   .result-screen { display: none; padding: 20px 16px 40px; max-width: 560px; margin: 0 auto; }
   .result-screen.show { display: block; animation: fadeInUp 0.6s ease; }
   @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -196,7 +195,6 @@
   .share-btn.image { background: #E17055; font-size:20px; }
   .share-tip { font-size: 13px; color: var(--text-secondary); margin-top: 10px; padding: 10px; background: #FFF3CD; border-radius: 8px; border: 1px solid #FFE69C; }
 
-  /* ===== 分享结果图片弹窗 ===== */
   .share-image-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.6); z-index: 1000;
@@ -277,7 +275,6 @@
 
 <div class="survey-container" id="surveyContainer"></div>
 
-<!-- 推荐结果页 -->
 <div class="result-screen" id="resultScreen">
   <div class="result-header">
     <span class="icon">🎯</span>
@@ -306,7 +303,6 @@
     <div id="qrContainer" style="display:none; margin-top:12px;"></div>
   </div>
 
-  <!-- 结果图片弹窗 -->
   <div class="share-image-overlay" id="shareImageOverlay">
     <div class="share-image-modal">
       <button class="close-btn" onclick="document.getElementById('shareImageOverlay').classList.remove('show')">&times;</button>
@@ -325,21 +321,21 @@
 
 <script>
 // ================================================================
-//  问卷数据 (12 题，全部服务于选型推荐)
+//  问卷数据
 // ================================================================
-const QUESTIONS = [
+var QUESTIONS = [
   {
     id: 'budget',
     type: 'radio',
     title: '你的预算是多少？',
     sub: '这是选键盘最重要的参考因素',
     options: [
-      { value: 'lt200',     label: '💰 150 元以下', desc: '入门级选择' },
-      { value: '200to400',  label: '💰 150 ~ 400 元', desc: '性价比区间' },
-      { value: '400to800',  label: '💰 400 ~ 800 元', desc: '主流中端' },
-      { value: '800to1500', label: '💰 800 ~ 1500 元', desc: '中高端' },
-      { value: '1500to3000',label: '💰 1500 ~ 3000 元', desc: '高端品质' },
-      { value: 'gt3000',    label: '💰 3000 元以上', desc: '顶级/客制化' },
+      { value: 'lt200',     label: '150 元以下', desc: '入门级选择' },
+      { value: '200to400',  label: '150 ~ 400 元', desc: '性价比区间' },
+      { value: '400to800',  label: '400 ~ 800 元', desc: '主流中端' },
+      { value: '800to1500', label: '800 ~ 1500 元', desc: '中高端' },
+      { value: '1500to3000',label: '1500 ~ 3000 元', desc: '高端品质' },
+      { value: 'gt3000',    label: '3000 元以上', desc: '顶级/客制化' },
     ]
   },
   {
@@ -348,11 +344,11 @@ const QUESTIONS = [
     title: '你主要用来做什么？',
     sub: '可多选，选主要的用途就行',
     options: [
-      { value: 'typing',   label: '✍️ 打字 / 写代码', desc: '大量文字输入' },
-      { value: 'gaming',   label: '🎮 打游戏', desc: '竞技/单机' },
-      { value: 'office',   label: '💼 办公', desc: '文档/表格/邮件' },
-      { value: 'creative', label: '🎨 创作/剪辑', desc: '设计/音视频' },
-      { value: 'daily',    label: '🏠 日常使用', desc: '浏览/聊天' },
+      { value: 'typing',   label: '打字 / 写代码', desc: '大量文字输入' },
+      { value: 'gaming',   label: '打游戏', desc: '竞技/单机' },
+      { value: 'office',   label: '办公', desc: '文档/表格/邮件' },
+      { value: 'creative', label: '创作/剪辑', desc: '设计/音视频' },
+      { value: 'daily',    label: '日常使用', desc: '浏览/聊天' },
     ]
   },
   {
@@ -361,11 +357,11 @@ const QUESTIONS = [
     title: '你目前在用什么键盘？',
     sub: '以及你想升级的原因',
     options: [
-      { value: 'membrane',    label: '🫧 薄膜键盘', desc: '想体验机械手感' },
-      { value: 'mech_old',    label: '⚙️ 机械键盘（入门）', desc: '想升级更好的' },
-      { value: 'mech_mid',    label: '⚙️ 机械键盘（中端）', desc: '想再添一把' },
-      { value: 'laptop',      label: '💻 笔记本键盘', desc: '想配外接键盘' },
-      { value: 'none_yet',    label: '🆕 还没有键盘', desc: '第一次购买' },
+      { value: 'membrane',    label: '薄膜键盘', desc: '想体验机械手感' },
+      { value: 'mech_old',    label: '机械键盘（入门）', desc: '想升级更好的' },
+      { value: 'mech_mid',    label: '机械键盘（中端）', desc: '想再添一把' },
+      { value: 'laptop',      label: '笔记本键盘', desc: '想配外接键盘' },
+      { value: 'none_yet',    label: '还没有键盘', desc: '第一次购买' },
     ]
   },
   {
@@ -374,15 +370,15 @@ const QUESTIONS = [
     title: '你对当前键盘最不满意的地方？',
     sub: '可多选，选在意的就行，没有可不选',
     options: [
-      { value: 'sound',      label: '🔊 声音不好听' },
-      { value: 'feel',       label: '✋ 手感不舒服' },
-      { value: 'layout',     label: '📐 布局不合适' },
-      { value: 'wireless',   label: '📡 没有无线 / 延迟高' },
-      { value: 'looks',      label: '🎨 外观不好看' },
-      { value: 'build',      label: '🏗️ 做工差 / 不耐用' },
-      { value: 'no_rgb',     label: '🌈 没有灯 / 灯效差' },
-      { value: 'no_custom',  label: '🔧 不能换轴 / 客制化' },
-      { value: 'already_ok', label: '✅ 没有不满，就是想添一把' },
+      { value: 'sound',      label: '声音不好听' },
+      { value: 'feel',       label: '手感不舒服' },
+      { value: 'layout',     label: '布局不合适' },
+      { value: 'wireless',   label: '没有无线 / 延迟高' },
+      { value: 'looks',      label: '外观不好看' },
+      { value: 'build',      label: '做工差 / 不耐用' },
+      { value: 'no_rgb',     label: '没有灯 / 灯效差' },
+      { value: 'no_custom',  label: '不能换轴 / 客制化' },
+      { value: 'already_ok', label: '没有不满，就是想添一把' },
     ]
   },
   {
@@ -391,12 +387,12 @@ const QUESTIONS = [
     title: '你想要的键盘有多大？',
     sub: '配列决定按键数量和桌面占用',
     options: [
-      { value: 'full',    label: '🖥️ 全尺寸（带数字区）', desc: '需要经常输入数字' },
-      { value: 'tkl',     label: '⌨️ TKL / 87键（无数字区）', desc: '常用功能键，节省桌面' },
-      { value: 'pct75',   label: '📏 75%（约84键）', desc: '紧凑又有功能键，目前最流行' },
-      { value: 'pct65',   label: '📦 65%（约68键）', desc: '有方向键，极简' },
-      { value: 'pct60',   label: '🪄 60%（约61键）', desc: '极致便携' },
-      { value: 'no_pref', label: '🤷 没概念 / 帮我推荐', desc: '选最合适的' },
+      { value: 'full',    label: '全尺寸（带数字区）', desc: '需要经常输入数字' },
+      { value: 'tkl',     label: 'TKL / 87键（无数字区）', desc: '常用功能键，节省桌面' },
+      { value: 'pct75',   label: '75%（约84键）', desc: '紧凑又有功能键，目前最流行' },
+      { value: 'pct65',   label: '65%（约68键）', desc: '有方向键，极简' },
+      { value: 'pct60',   label: '60%（约61键）', desc: '极致便携' },
+      { value: 'no_pref', label: '没概念 / 帮我推荐', desc: '选最合适的' },
     ]
   },
   {
@@ -405,12 +401,12 @@ const QUESTIONS = [
     title: '你更喜欢哪种按键手感？',
     sub: '如果不确定，选最后一项',
     options: [
-      { value: 'linear',   label: '🟥 直上直下（线性）', desc: '顺滑无段落，如红轴/银轴' },
-      { value: 'tactile',  label: '🟫 有段落感（段落）', desc: '按下有触感，如茶轴' },
-      { value: 'clicky',   label: '🟩 清脆有声音（清脆）', desc: '打字啪啪响，如青轴' },
-      { value: 'silent',   label: '🔇 越静音越好', desc: '在宿舍/办公室用' },
-      { value: 'magnetic', label: '🧲 磁轴（可调触发）', desc: '电竞玩家专用，可调键程' },
-      { value: 'describe', label: '🤷 描述给我听，帮我选', desc: '我不太了解轴体' },
+      { value: 'linear',   label: '直上直下（线性）', desc: '顺滑无段落，如红轴/银轴' },
+      { value: 'tactile',  label: '有段落感（段落）', desc: '按下有触感，如茶轴' },
+      { value: 'clicky',   label: '清脆有声音（清脆）', desc: '打字啪啪响，如青轴' },
+      { value: 'silent',   label: '越静音越好', desc: '在宿舍/办公室用' },
+      { value: 'magnetic', label: '磁轴（可调触发）', desc: '电竞玩家专用' },
+      { value: 'describe', label: '描述给我听，帮我选', desc: '我不太了解轴体' },
     ]
   },
   {
@@ -420,10 +416,10 @@ const QUESTIONS = [
     sub: '闭上眼睛想象一下',
     showIf: { id: 'switch_pref', values: ['describe'] },
     options: [
-      { value: 'smooth',    label: '🧈 顺滑流畅，像按在奶油上', desc: '推荐线性轴' },
-      { value: 'bumpy',     label: '👆 有明确的段落感', desc: '推荐段落轴' },
-      { value: 'typewriter',label: '📻 像老式打字机，啪嗒啪嗒', desc: '推荐清脆轴' },
-      { value: 'quiet',     label: '🤫 安安静静，不要吵到别人', desc: '推荐静音轴' },
+      { value: 'smooth',    label: '顺滑流畅，像按在奶油上', desc: '推荐线性轴' },
+      { value: 'bumpy',     label: '有明确的段落感', desc: '推荐段落轴' },
+      { value: 'typewriter',label: '像老式打字机，啪嗒啪嗒', desc: '推荐清脆轴' },
+      { value: 'quiet',     label: '安安静静，不要吵到别人', desc: '推荐静音轴' },
     ]
   },
   {
@@ -432,9 +428,9 @@ const QUESTIONS = [
     title: '你经常需要输入数字吗？',
     sub: '比如财务、记账、数据录入',
     options: [
-      { value: 'yes',    label: '✅ 经常需要', desc: '建议全尺寸或分离数字区' },
-      { value: 'some',   label: '🔄 偶尔用', desc: '可以考虑 1800 紧凑配列' },
-      { value: 'no',     label: '❌ 基本不用', desc: 'TKL 或更小配列即可' },
+      { value: 'yes',    label: '经常需要', desc: '建议全尺寸或分离数字区' },
+      { value: 'some',   label: '偶尔用', desc: '可以考虑 1800 紧凑配列' },
+      { value: 'no',     label: '基本不用', desc: 'TKL 或更小配列即可' },
     ]
   },
   {
@@ -442,9 +438,9 @@ const QUESTIONS = [
     type: 'radio',
     title: '你需要无线连接吗？',
     options: [
-      { value: 'must_wireless', label: '📡 必须无线', desc: '桌面整洁 / 多设备切换' },
-      { value: 'nice_have',     label: '🔌 有最好，没有也行', desc: '双模备用' },
-      { value: 'wired_only',    label: '🔗 只要有线', desc: '稳定不操心' },
+      { value: 'must_wireless', label: '必须无线', desc: '桌面整洁 / 多设备切换' },
+      { value: 'nice_have',     label: '有最好，没有也行', desc: '双模备用' },
+      { value: 'wired_only',    label: '只要有线', desc: '稳定不操心' },
     ]
   },
   {
@@ -453,12 +449,12 @@ const QUESTIONS = [
     title: '你想要哪些功能？',
     sub: '可多选，选你在意的就行，没有可不选',
     options: [
-      { value: 'hotswap',    label: '🔧 热插拔（免焊换轴）', desc: '方便以后换轴玩' },
-      { value: 'rgb',        label: '🌈 RGB 灯效', desc: '光污染爱好者' },
-      { value: 'knob',       label: '🎛️ 旋钮（音量控制）', desc: '调节音量很方便' },
-      { value: 'screen',     label: '🖥️ 小屏幕（显示信息）', desc: '看时间/电量/状态' },
-      { value: 'qmk_via',    label: '⚙️ QMK/VIA（可编程）', desc: '自由改键位' },
-      { value: 'wireless_charge', label: '⚡ 无线充电', desc: '放下就充' },
+      { value: 'hotswap',    label: '热插拔（免焊换轴）', desc: '方便以后换轴玩' },
+      { value: 'rgb',        label: 'RGB 灯效', desc: '光污染爱好者' },
+      { value: 'knob',       label: '旋钮（音量控制）', desc: '调节音量很方便' },
+      { value: 'screen',     label: '小屏幕（显示信息）', desc: '看时间/电量/状态' },
+      { value: 'qmk_via',    label: 'QMK/VIA（可编程）', desc: '自由改键位' },
+      { value: 'wireless_charge', label: '无线充电', desc: '放下就充' },
     ]
   },
   {
@@ -467,11 +463,11 @@ const QUESTIONS = [
     title: '你喜欢什么样的键盘声音？',
     sub: '如果无所谓可以不选',
     options: [
-      { value: 'thock',   label: '🥥 闷厚低沉', desc: '像敲木头/大理石' },
-      { value: 'creamy',  label: '🧈 奶油绵密', desc: '顺滑的小声音' },
-      { value: 'clack',   label: '🔔 清脆响亮', desc: '像敲钢板' },
-      { value: 'silent_s',label: '🔇 近乎无声', desc: '越安静越好' },
-      { value: 'no_care', label: '🤷 无所谓', desc: '手感比声音重要' },
+      { value: 'thock',   label: '闷厚低沉', desc: '像敲木头/大理石' },
+      { value: 'creamy',  label: '奶油绵密', desc: '顺滑的小声音' },
+      { value: 'clack',   label: '清脆响亮', desc: '像敲钢板' },
+      { value: 'silent_s',label: '近乎无声', desc: '越安静越好' },
+      { value: 'no_care', label: '无所谓', desc: '手感比声音重要' },
     ]
   },
   {
@@ -479,10 +475,10 @@ const QUESTIONS = [
     type: 'radio',
     title: '你更看重外观还是手感？',
     options: [
-      { value: 'feel',       label: '✋ 手感优先', desc: '用起来舒服最重要' },
-      { value: 'looks',      label: '🎨 外观优先', desc: '要好看，有设计感' },
-      { value: 'both',       label: '🤝 都很重要', desc: '内外兼修' },
-      { value: 'price_first',label: '💰 性价比优先', desc: '实用就好' },
+      { value: 'feel',       label: '手感优先', desc: '用起来舒服最重要' },
+      { value: 'looks',      label: '外观优先', desc: '要好看，有设计感' },
+      { value: 'both',       label: '都很重要', desc: '内外兼修' },
+      { value: 'price_first',label: '性价比优先', desc: '实用就好' },
     ]
   },
   {
@@ -491,11 +487,11 @@ const QUESTIONS = [
     title: '你主要在什么环境用？',
     sub: '影响推荐的选择',
     options: [
-      { value: 'home',     label: '🏠 家里', desc: '自由，不怕吵' },
-      { value: 'office',   label: '🏢 办公室', desc: '建议安静一些' },
-      { value: 'dorm',     label: '🎒 宿舍', desc: '室友在，不宜太响' },
-      { value: 'public',   label: '☕ 咖啡厅/图书馆', desc: '需要静音+便携' },
-      { value: 'multiple', label: '🔄 多个场所', desc: '需要便携' },
+      { value: 'home',     label: '家里', desc: '自由，不怕吵' },
+      { value: 'office',   label: '办公室', desc: '建议安静一些' },
+      { value: 'dorm',     label: '宿舍', desc: '室友在，不宜太响' },
+      { value: 'public',   label: '咖啡厅/图书馆', desc: '需要静音+便携' },
+      { value: 'multiple', label: '多个场所', desc: '需要便携' },
     ]
   },
   {
@@ -504,10 +500,10 @@ const QUESTIONS = [
     title: '你之前用过机械键盘吗？',
     sub: '用来判断推荐保守还是大胆的方案',
     options: [
-      { value: 'never',   label: '❌ 没用过，这是第一次' },
-      { value: 'tried',   label: '🔍 用过朋友的 / 试过' },
-      { value: 'yes_one', label: '✅ 用过一把，想换换口味' },
-      { value: 'yes_many',label: '🏆 用过好几把，很了解' },
+      { value: 'never',   label: '没用过，这是第一次' },
+      { value: 'tried',   label: '用过朋友的 / 试过' },
+      { value: 'yes_one', label: '用过一把，想换换口味' },
+      { value: 'yes_many',label: '用过好几把，很了解' },
     ]
   },
 ];
@@ -516,38 +512,35 @@ const QUESTIONS = [
 //  推荐引擎
 // ================================================================
 function generateRecommendation(answers) {
-  const budget = answers.budget || '400to800';
-  const useCases = answers.use_case || ['typing'];
-  const layout = answers.layout || 'no_pref';
-  const switchPref = answers.switch_pref || 'linear';
-  const switchFeel = answers.switch_feel || null;
-  const wireless = answers.wireless || 'nice_have';
-  const features = answers.features || [];
-  const sound = answers.sound || null;
-  const environment = answers.environment || 'home';
-  const experience = answers.experience || 'never';
-  const currentKb = answers.current_keyboard || 'none_yet';
-  const painPoints = answers.pain_point || [];
-  const numpad = answers.numpad || 'no';
-  const appearance = answers.appearance || 'feel';
+  var budget = answers.budget || '400to800';
+  var useCases = answers.use_case || ['typing'];
+  var layout = answers.layout || 'no_pref';
+  var switchPref = answers.switch_pref || 'linear';
+  var switchFeel = answers.switch_feel || null;
+  var wireless = answers.wireless || 'nice_have';
+  var features = answers.features || [];
+  var sound = answers.sound || null;
+  var environment = answers.environment || 'home';
+  var experience = answers.experience || 'never';
+  var currentKb = answers.current_keyboard || 'none_yet';
+  var painPoints = answers.pain_point || [];
+  var numpad = answers.numpad || 'no';
+  var appearance = answers.appearance || 'feel';
 
-  const isGaming = useCases.includes('gaming');
-  const isTyping = useCases.includes('typing') || useCases.includes('office');
-  const isCreative = useCases.includes('creative');
+  var isGaming = useCases.indexOf('gaming') !== -1;
+  var isTyping = useCases.indexOf('typing') !== -1 || useCases.indexOf('office') !== -1;
 
-  const budgetRanges = { lt200: [0, 150], '200to400': [150, 400], '400to800': [400, 800], '800to1500': [800, 1500], '1500to3000': [1500, 3000], gt3000: [3000, 99999] };
-  const [budgetLow, budgetHigh] = budgetRanges[budget] || [400, 800];
+  var budgetRanges = { lt200: [0, 150], '200to400': [150, 400], '400to800': [400, 800], '800to1500': [800, 1500], '1500to3000': [1500, 3000], gt3000: [3000, 99999] };
+  var budgetLabel = { lt200: '150元以下', '200to400': '150~400元', '400to800': '400~800元', '800to1500': '800~1500元', '1500to3000': '1500~3000元', gt3000: '3000元以上' };
 
-  // 配列
-  let recLayout = layout;
+  var recLayout = layout;
   if (recLayout === 'no_pref') {
     if (numpad === 'yes') recLayout = 'full';
     else if (isGaming && !isTyping) recLayout = 'tkl';
     else recLayout = 'pct75';
   }
 
-  // 轴体
-  let recSwitchType = switchPref;
+  var recSwitchType = switchPref;
   if (recSwitchType === 'describe') {
     if (switchFeel === 'smooth') recSwitchType = 'linear';
     else if (switchFeel === 'bumpy') recSwitchType = 'tactile';
@@ -556,31 +549,32 @@ function generateRecommendation(answers) {
     else recSwitchType = 'linear';
   }
 
-  const budgetLabel = { lt200: '150元以下', '200to400': '150~400元', '400to800': '400~800元', '800to1500': '800~1500元', '1500to3000': '1500~3000元', gt3000: '3000元以上' };
+  var layoutNames = { full:'全尺寸', tkl:'TKL 87键', pct75:'75% 紧凑', pct65:'65%', pct60:'60%', no_pref:'灵活' };
+  var switchNames = { linear:'线性轴', tactile:'段落轴', clicky:'清脆轴', silent:'静音轴', magnetic:'磁轴', describe:'待定' };
 
-  const tags = [];
-  const layoutNames = { full:'全尺寸', tkl:'TKL 87键', pct75:'75% 紧凑', pct65:'65%', pct60:'60%', no_pref:'灵活' };
+  var tags = [];
   tags.push(layoutNames[recLayout] || '全尺寸');
-  const switchNames = { linear:'线性轴', tactile:'段落轴', clicky:'清脆轴', silent:'静音轴', magnetic:'磁轴', describe:'待定' };
   tags.push(switchNames[recSwitchType] || '线性轴');
   if (wireless === 'must_wireless') tags.push('无线');
-  if (features.includes('hotswap')) tags.push('热插拔');
-  if (features.includes('rgb')) tags.push('RGB');
-  if (features.includes('knob')) tags.push('旋钮');
+  if (features.indexOf('hotswap') !== -1) tags.push('热插拔');
+  if (features.indexOf('rgb') !== -1) tags.push('RGB');
+  if (features.indexOf('knob') !== -1) tags.push('旋钮');
   if (environment === 'office' || environment === 'dorm') tags.push('安静');
   if (isGaming) tags.push('电竞');
   if (isTyping) tags.push('打字');
 
-  const models = generateModelRecommendations({
-    budget, budgetLow, budgetHigh, recLayout, recSwitchType, wireless,
-    features, isGaming, isTyping, environment, experience, currentKb, painPoints, sound, appearance
+  var models = generateModels({
+    budget: budget, recLayout: recLayout, recSwitchType: recSwitchType,
+    wireless: wireless, features: features, isGaming: isGaming, isTyping: isTyping,
+    environment: environment, experience: experience, painPoints: painPoints, sound: sound, appearance: appearance
   });
 
-  const reasons = [];
-  const useCaseText = useCases.map(function(u) {
-    var map = { typing:'打字', gaming:'游戏', office:'办公', creative:'创作', daily:'日常' };
-    return map[u] || u;
+  var useCaseText = useCases.map(function(u) {
+    var m = { typing:'打字', gaming:'游戏', office:'办公', creative:'创作', daily:'日常' };
+    return m[u] || u;
   }).join('、');
+
+  var reasons = [];
   reasons.push('你主要用键盘做「' + useCaseText + '」');
   reasons.push('建议 ' + layoutNames[recLayout] + ' 配列');
   if (switchPref === 'describe') {
@@ -588,9 +582,6 @@ function generateRecommendation(answers) {
   }
   if (environment === 'office') reasons.push('办公室使用建议选静音一点的轴体');
   if (isGaming && recSwitchType === 'linear') reasons.push('游戏场景推荐线性轴，触发快');
-  if (!answers.switch_pref || answers.switch_pref === 'describe') {
-    // ok
-  }
 
   var details = [];
   details.push({ emoji: '⌨️', label: '配列', value: layoutNames[recLayout] || '全尺寸' });
@@ -609,13 +600,13 @@ function generateRecommendation(answers) {
   return { tags: tags, models: models, reasons: reasons, details: details, budgetLabel: budgetLabel[budget] };
 }
 
-// ---- 型号推荐引擎 ----
-function generateModelRecommendations(opts) {
+// ---- 型号推荐引擎（已修复预算约束）----
+function generateModels(opts) {
   var budget = opts.budget, recLayout = opts.recLayout, recSwitchType = opts.recSwitchType;
   var wireless = opts.wireless, features = opts.features, isGaming = opts.isGaming, isTyping = opts.isTyping;
   var environment = opts.environment, experience = opts.experience, painPoints = opts.painPoints, sound = opts.sound, appearance = opts.appearance;
 
-  var DATABASE = {
+  var DB = {
     lt200: [
       { name: 'RK R87', price: '99~139', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB'], reason: '百元价位最强，热插拔+RGB，入门首选', features: ['hotswap', 'rgb'] },
       { name: '达尔优 EK75', price: '129~179', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '旋钮'], reason: '75%配列+旋钮，性价比极高', features: ['hotswap', 'rgb', 'knob'] },
@@ -634,7 +625,6 @@ function generateModelRecommendations(opts) {
       { name: 'NuPhy Halo75', price: '699~899', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '三模', '设计感'], reason: '颜值天花板，三模+热插拔', features: ['hotswap', 'rgb'] },
       { name: 'Ducky One 3', price: '599~799', layouts: ['full', 'tkl', 'pct65'], switches: ['linear', 'tactile', 'clicky', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '经典'], reason: '经典品牌，做工扎实', features: ['hotswap', 'rgb'] },
       { name: 'Wooting 60HE+', price: '799~999', layouts: ['pct60'], switches: ['magnetic'], wireless: ['wired_only'], tags: ['磁轴', '电竞'], reason: '电竞天花板，磁轴可调键程', features: [] },
-      { name: '阿米洛 娘系列', price: '699~899', layouts: ['full', 'tkl', 'pct75'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['设计感'], reason: '国潮设计天花板', features: [] },
       { name: 'MonsGeek M1', price: '499~699', layouts: ['tkl', 'pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '铝壳', 'QMK'], reason: '铝壳+Gasket，声音手感俱佳', features: ['hotswap', 'rgb', 'qmk_via'] },
     ],
     '800to1500': [
@@ -650,27 +640,41 @@ function generateModelRecommendations(opts) {
       { name: '客制化套件', price: '1500~3000', layouts: ['pct65'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['客制化', '铝壳', 'Gasket'], reason: '自己组一把独一无二的键盘', features: ['hotswap', 'qmk_via'] },
     ],
     gt3000: [
-      { name: '客制化旗舰', price: '3000~10000+', layouts: ['tkl', 'pct65', 'alice'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['收藏级', '客制化'], reason: '键盘圈终极形态', features: ['qmk_via'] },
+      { name: '客制化旗舰 Keycult/TGR', price: '3000~10000+', layouts: ['tkl', 'pct65', 'alice'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['收藏级', '客制化'], reason: '键盘圈终极形态', features: ['qmk_via'] },
       { name: 'HHKB Professional HG', price: '3499~4499', layouts: ['pct60'], switches: ['es_capacitive'], wireless: ['wired_only'], tags: ['静电容', '旗舰'], reason: '静电容中的劳斯莱斯', features: [] },
     ]
   };
 
-  var budgetLevels = ['lt200', '200to400', '400to800', '800to1500', '1500to3000', 'gt3000'];
-  var levelIdx = budgetLevels.indexOf(budget);
-  if (levelIdx === -1) levelIdx = 2;
+  var levels = ['lt200', '200to400', '400to800', '800to1500', '1500to3000', 'gt3000'];
+  var userLevel = levels.indexOf(budget);
+  if (userLevel === -1) userLevel = 2;
 
-  var pool = (DATABASE[budget] || []).slice();
-  if (levelIdx > 0) pool = pool.concat(DATABASE[budgetLevels[levelIdx - 1]] || []);
-  if (levelIdx < budgetLevels.length - 1) pool = pool.concat(DATABASE[budgetLevels[levelIdx + 1]] || []);
-  pool = pool.filter(function(item, idx, self) { return self.findIndex(function(i) { return i.name === item.name; }) === idx; });
+  // 构建候选池 + 标记来源价位
+  var pool = [];
+  function addFrom(level, sourceLevel) {
+    (DB[level] || []).forEach(function(m) {
+      pool.push({ item: m, sourceLevel: sourceLevel });
+    });
+  }
+  addFrom(budget, userLevel);
+  if (userLevel > 0) addFrom(levels[userLevel - 1], userLevel - 1);
+  if (userLevel < levels.length - 1) addFrom(levels[userLevel + 1], userLevel + 1);
+  // 去重
+  pool = pool.filter(function(e, i, self) {
+    return self.findIndex(function(x) { return x.item.name === e.item.name; }) === i;
+  });
 
-  var scored = pool.map(function(item) {
+  // 评分（含预算约束惩罚）
+  var scored = pool.map(function(entry) {
+    var item = entry.item;
+    var sourceLevel = entry.sourceLevel;
     var score = 0;
-    if (item.layouts.indexOf(recLayout) !== -1) score += 5;
-    if (recLayout === 'no_pref' && item.layouts.indexOf('pct75') !== -1) score += 3;
-    if (item.switches.indexOf(recSwitchType) !== -1) score += 5;
+
+    if (item.layouts.indexOf(recLayout) !== -1) score += 10;
+    if (recLayout === 'no_pref' && item.layouts.indexOf('pct75') !== -1) score += 5;
+    if (item.switches.indexOf(recSwitchType) !== -1) score += 10;
     if (recSwitchType === 'magnetic' && item.switches.indexOf('magnetic') !== -1) score += 10;
-    if (recSwitchType === 'silent' && item.switches.indexOf('silent') !== -1) score += 3;
+    if (recSwitchType === 'silent' && item.switches.indexOf('silent') !== -1) score += 5;
     if (item.wireless.indexOf(wireless) !== -1) score += 4;
     if (wireless === 'must_wireless' && item.wireless.indexOf('must_wireless') !== -1) score += 3;
     if (features.length > 0) {
@@ -686,23 +690,31 @@ function generateModelRecommendations(opts) {
     }
     if (environment === 'office' || environment === 'dorm') {
       if (item.switches.indexOf('silent') !== -1) score += 3;
-      if (item.tags.indexOf('静音') !== -1) score += 2;
     }
     if (experience === 'never' && parseInt(item.price) < 500) score += 2;
     if (appearance === 'looks' && item.tags.indexOf('设计感') !== -1) score += 3;
     if (painPoints.indexOf('sound') !== -1 && item.tags.some(function(t) { return ['Gasket', '铝壳', '静音'].indexOf(t) !== -1; })) score += 2;
     if (painPoints.indexOf('wireless') !== -1 && item.wireless.indexOf('must_wireless') !== -1) score += 3;
     if (painPoints.indexOf('feel') !== -1 && item.tags.indexOf('Gasket') !== -1) score += 2;
+
+    // ===== 预算约束：超预算的大幅减分，确保预算内优先 =====
+    var levelsOver = sourceLevel - userLevel;
+    if (levelsOver > 0) {
+      score -= levelsOver * 25;  // 每超一档扣25分，超预算的基本不会上榜
+    } else if (levelsOver < 0) {
+      score += 3;  // 比预算便宜是加分项
+    } else {
+      score += 8;  // 正好匹配预算，额外加分
+    }
+
     return { item: item, score: score };
   });
 
   scored.sort(function(a, b) { return b.score - a.score; });
   var top3 = scored.slice(0, 3);
   var labels = ['最佳推荐', '备选方案', '也不错'];
-  top3.forEach(function(entry, idx) {
-    entry.item.label = labels[idx] || '';
-  });
-  return top3.map(function(entry) { return entry.item; });
+  top3.forEach(function(e, i) { e.item.label = labels[i] || ''; });
+  return top3.map(function(e) { return e.item; });
 }
 
 // ================================================================
@@ -742,8 +754,7 @@ function isAnswered(id) {
   var val = getAnswerValue(id);
   if (val === null || val === undefined) return false;
   if (typeof val === 'string') return val.length > 0;
-  if (Array.isArray(val)) return val.length > 0;
-  return false;
+  return Array.isArray(val) && val.length > 0;
 }
 
 function shouldShow(q) {
@@ -797,12 +808,12 @@ function renderQuestions() {
       }
     }
 
-    html += '  </div>'; // .options
+    html += '  </div>';
     html += '  <div class="nav-buttons">';
     html += '    <div class="left-group">';
     html += '      <button class="btn btn-secondary" onclick="prevQuestion()" id="prevBtn_' + idx + '" style="min-width:60px;">⬅</button>';
     html += '    </div>';
-    html += '    <button class="btn-skip" onclick="skipQuestion()" id="skipBtn_' + idx + '" style="display:inline-block;">⏭ 跳过</button>';
+    html += '    <button class="btn-skip" onclick="skipQuestion()" id="skipBtn_' + idx + '">⏭ 跳过</button>';
     html += '    <div class="right-group">';
     html += '      <button class="btn btn-primary" id="btnNext_' + idx + '" onclick="nextQuestion()">下一步</button>';
     html += '    </div>';
@@ -812,7 +823,6 @@ function renderQuestions() {
 
   container.innerHTML = html;
 
-  // 绑定选项点击（用div代替label避免浏览器默认行为干扰）
   var items = $$('.option-item');
   for (var i = 0; i < items.length; i++) {
     (function(el) {
@@ -836,14 +846,12 @@ function renderQuestions() {
         }
         if (input.checked) el.classList.add('selected');
         else el.classList.remove('selected');
-
         updateCardState();
         updateNextButton();
       });
     })(items[i]);
   }
 
-  // 文本输入
   var inputs = $$('.text-input');
   for (var t = 0; t < inputs.length; t++) {
     inputs[t].addEventListener('input', function() { updateCardState(); updateNextButton(); });
@@ -876,11 +884,7 @@ function findPrev(from) {
 }
 
 function showCard(index) {
-  var cards = $$('.question-card');
-  for (var i = 0; i < cards.length; i++) {
-    cards[i].classList.remove('active');
-    cards[i].style.display = 'none';
-  }
+  $$('.question-card').forEach(function(el) { el.classList.remove('active'); el.style.display = 'none'; });
 
   var card = document.getElementById('card_' + index);
   if (card) {
@@ -901,22 +905,19 @@ function showCard(index) {
   var nextBtn = document.getElementById('btnNext_' + index);
   if (nextBtn) {
     var v = getVisibleCards();
-    var isLast = v.indexOf(index) >= v.length - 1;
-    nextBtn.textContent = isLast ? '查看推荐' : '下一步';
+    nextBtn.textContent = v.indexOf(index) >= v.length - 1 ? '查看推荐' : '下一步';
   }
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function updateCardState() {
-  var cards = $$('.question-card');
-  for (var i = 0; i < cards.length; i++) {
-    var idx = parseInt(cards[i].dataset.index);
+  $$('.question-card').forEach(function(card) {
+    var idx = parseInt(card.dataset.index);
     var q = QUESTIONS[idx];
-    if (!q) continue;
-    if (isAnswered(q.id)) cards[i].classList.add('answered');
-    else cards[i].classList.remove('answered');
-  }
+    if (!q) return;
+    if (isAnswered(q.id)) card.classList.add('answered');
+    else card.classList.remove('answered');
+  });
 }
 
 function updateNextButton() {
@@ -927,9 +928,6 @@ function updateNextButton() {
   var hasAnswer = isAnswered(q.id);
   var isCheckbox = q.type === 'checkbox';
   var isText = q.type === 'text';
-  // checkbox: 即使没选也可以继续（可跳过）
-  // text: 选填
-  // radio: 必须选一个
   btn.disabled = !isCheckbox && !isText && !hasAnswer;
 }
 
@@ -952,13 +950,11 @@ function updateProgress() {
 function nextQuestion() {
   var q = QUESTIONS[currentIndex];
   if (!q) return;
-  // radio 必须选，checkbox/text 允许跳过
   if (q.type === 'radio' && !isAnswered(q.id)) {
     showToast('请先回答本题');
     return;
   }
   answers[q.id] = getAnswerValue(q.id);
-
   var next = findNext(currentIndex);
   if (next === null) { submitSurvey(); return; }
   showCard(next);
@@ -972,9 +968,6 @@ function prevQuestion() {
 }
 
 function skipQuestion() {
-  var q = QUESTIONS[currentIndex];
-  if (!q) return;
-  // 跳过：不保存答案，直接去下一题
   var next = findNext(currentIndex);
   if (next === null) { submitSurvey(); return; }
   showCard(next);
@@ -1006,7 +999,6 @@ function submitSurvey() {
   var allData = JSON.parse(localStorage.getItem('kb_reco_data') || '[]');
   allData.push(record);
   localStorage.setItem('kb_reco_data', JSON.stringify(allData));
-
   submitted = true;
 
   var rec = generateRecommendation(answers);
@@ -1022,7 +1014,6 @@ function renderRecommendation(rec) {
   var container = $('#recommendationContent');
   var html = '';
 
-  // 摘要卡
   html += '<div class="rec-card">';
   html += '  <div class="tag">你的键盘画像</div>';
   html += '  <div class="rec-tags" style="margin-bottom:12px;">';
@@ -1077,14 +1068,10 @@ function resetSurvey() {
   $('#shareSection').classList.remove('show');
   $('#qrContainer').style.display = 'none';
 
-  var radios = $$('input[type="radio"]');
-  for (var r = 0; r < radios.length; r++) radios[r].checked = false;
-  var checks = $$('input[type="checkbox"]');
-  for (var c = 0; c < checks.length; c++) checks[c].checked = false;
-  var opts = $$('.option-item');
-  for (var o = 0; o < opts.length; o++) opts[o].classList.remove('selected');
-  var txts = $$('.text-input');
-  for (var t = 0; t < txts.length; t++) txts[t].value = '';
+  $$('input[type="radio"]').forEach(function(el) { el.checked = false; });
+  $$('input[type="checkbox"]').forEach(function(el) { el.checked = false; });
+  $$('.option-item').forEach(function(el) { el.classList.remove('selected'); });
+  $$('.text-input').forEach(function(el) { el.value = ''; });
 
   jumpToFirst();
   updateCardState();
@@ -1124,7 +1111,7 @@ function exportResult() {
   var allData = JSON.parse(localStorage.getItem('kb_reco_data') || '[]');
   if (!allData.length) { showToast('暂无数据'); return; }
   var last = allData[allData.length - 1];
-  var text = '键盘选型助手 - 我的结果\n' + '提交时间: ' + last.timestamp + '\n' + '---------------\n\n';
+  var text = '键盘选型助手 - 我的结果\n提交时间: ' + last.timestamp + '\n---------------\n\n';
   for (var i = 0; i < QUESTIONS.length; i++) {
     var q = QUESTIONS[i];
     if (!q.id) continue;
@@ -1173,28 +1160,21 @@ function exportAllData() {
 }
 
 // ================================================================
-//  分享推荐结果 —— 生成图片 + 结果链接
+//  分享结果图片
 // ================================================================
-
-// 1. 生成推荐结果图片
 var _lastCanvas = null;
 
 function shareResultImage() {
   var content = $('#recommendationContent');
-  if (!content || content.innerHTML.trim() === '') {
-    showToast('请先完成测评');
-    return;
-  }
+  if (!content || content.innerHTML.trim() === '') { showToast('请先完成测评'); return; }
 
-  var w = 750;  // 2x 尺寸 (375*2)，清晰
-  var h = 1100;
+  var w = 750, h = 1100;
   var canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   var ctx = canvas.getContext('2d');
   _lastCanvas = canvas;
 
-  // 背景
   var grad = ctx.createLinearGradient(0, 0, 0, h);
   grad.addColorStop(0, '#4F6EF7');
   grad.addColorStop(0.25, '#7C5CFC');
@@ -1203,26 +1183,20 @@ function shareResultImage() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 
-  // 顶部标题
   ctx.fillStyle = 'white';
   ctx.font = 'bold 36px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('⌨️  键盘选型结果', w/2, 72);
-
+  ctx.fillText('键盘选型结果', w/2, 72);
   ctx.font = '22px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.fillText('根据你的偏好，为你推荐以下方案', w/2, 108);
 
-  // 从 DOM 中读取数据
   var tags = content.querySelectorAll('.rec-tag');
   var details = content.querySelectorAll('.rec-detail-item');
   var models = content.querySelectorAll('.model-item');
 
-  // 标签
   var y = 160;
   if (tags.length > 0) {
-    ctx.fillStyle = 'white';
-    ctx.font = '18px "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'left';
     var tagX = 40;
     tags.forEach(function(tag) {
@@ -1230,80 +1204,60 @@ function shareResultImage() {
       var tw = ctx.measureText(text).width + 32;
       if (tagX + tw > w - 40) { tagX = 40; y += 42; }
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      roundRect(ctx, tagX, y, tw, 38, 19);
-      ctx.fill();
+      roundRectFill(ctx, tagX, y, tw, 38, 19);
       ctx.fillStyle = 'white';
-      ctx.font = '16px "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.font = '16px sans-serif';
       ctx.fillText(text, tagX + 16, y + 26);
       tagX += tw + 10;
     });
     y += 56;
   }
 
-  // 白色卡片背景
+  var detailH = details.length * 48 + 20;
+  var modelH = models.length * 80 + 30;
+  var cardH = detailH + modelH + 40;
   var cardY = y;
-  var cardH = 0;
 
-  // 算一下卡片高度
-  var detailCount = details.length;
-  var modelCount = models.length;
-  var detailH = detailCount * 48 + 20;
-  var modelH = modelCount * 80 + 30;
-  cardH = detailH + modelH + 40;
-
-  // 绘制卡片
-  ctx.fillStyle = 'white';
-  roundRect(ctx, 30, cardY, w - 60, cardH, 16);
-  ctx.fill();
   ctx.shadowColor = 'rgba(0,0,0,0.08)';
-  ctx.shadowBlur = 30;
-  roundRect(ctx, 30, cardY, w - 60, cardH, 16);
-  ctx.fill();
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = 'white';
+  roundRectFill(ctx, 30, cardY, w - 60, cardH, 16);
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
 
-  // 详细配置
   var dy = cardY + 16;
-  ctx.textAlign = 'left';
   details.forEach(function(d) {
-    var emoji = d.querySelector('.emoji') ? d.querySelector('.emoji').textContent : '';
     var labelEl = d.querySelectorAll('span')[1];
     var valEl = d.querySelectorAll('span')[2];
     var label = labelEl ? labelEl.textContent.trim() : '';
     var val = valEl ? valEl.textContent.trim() : '';
-
+    ctx.textAlign = 'left';
     ctx.fillStyle = '#636E72';
-    ctx.font = '15px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.font = '15px sans-serif';
     ctx.fillText(label, 70, dy + 28);
-
     ctx.fillStyle = '#2D3436';
-    ctx.font = 'bold 17px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.font = 'bold 17px sans-serif';
     ctx.fillText(val, 160, dy + 28);
-
-    // 分隔线
     ctx.fillStyle = '#F0F0F0';
     ctx.fillRect(50, dy + 44, w - 100, 1);
-
     dy += 48;
   });
 
-  // 推荐型号
   dy += 8;
   ctx.fillStyle = '#2D3436';
-  ctx.font = 'bold 18px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText('🏆 推荐键盘', 50, dy + 8);
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('推荐键盘', 50, dy + 8);
   dy += 36;
 
   var rankColors = ['#4F6EF7', '#00B894', '#636E72'];
   models.forEach(function(m, idx) {
-    var el = m.querySelector('.name');
+    var nameEl = m.querySelector('.name');
     var reasonEl = m.querySelector('.reason');
     var priceEl = m.querySelector('.price');
-    var name = el ? el.childNodes[0].textContent.trim() : '';
+    var name = nameEl ? nameEl.childNodes[0].textContent.trim() : '';
     var reason = reasonEl ? reasonEl.textContent.trim() : '';
     var price = priceEl ? priceEl.textContent.trim() : '';
 
-    // 排名圆
     ctx.fillStyle = rankColors[idx] || '#999';
     ctx.beginPath();
     ctx.arc(65, dy + 22, 18, 0, Math.PI * 2);
@@ -1313,38 +1267,31 @@ function shareResultImage() {
     ctx.textAlign = 'center';
     ctx.fillText('' + (idx + 1), 65, dy + 28);
 
-    // 名称
     ctx.textAlign = 'left';
     ctx.fillStyle = '#2D3436';
-    ctx.font = 'bold 17px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.font = 'bold 17px sans-serif';
     ctx.fillText(name, 96, dy + 22);
 
-    // 价格
     ctx.textAlign = 'right';
     ctx.fillStyle = '#4F6EF7';
-    ctx.font = 'bold 16px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.fillText('¥' + price, w - 50, dy + 22);
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(price, w - 50, dy + 22);
 
-    // 推荐理由
     ctx.textAlign = 'left';
     ctx.fillStyle = '#636E72';
-    ctx.font = '14px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.fillText('推荐：' + reason, 96, dy + 48);
+    ctx.font = '14px sans-serif';
+    ctx.fillText(reason, 96, dy + 48);
 
-    // 分隔线
     ctx.fillStyle = '#F0F0F0';
     ctx.fillRect(50, dy + 68, w - 100, 1);
-
     dy += 80;
   });
 
-  // 底部
   ctx.textAlign = 'center';
   ctx.fillStyle = '#B0B0B0';
-  ctx.font = '14px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText('由「键盘选型助手」生成 · 扫码即可测评', w/2, h - 30);
+  ctx.font = '14px sans-serif';
+  ctx.fillText('由「键盘选型助手」生成', w/2, h - 30);
 
-  // 显示在弹窗
   var container = $('#resultCanvasContainer');
   container.innerHTML = '';
   container.appendChild(canvas);
@@ -1357,7 +1304,7 @@ function shareResultImage() {
   document.getElementById('shareImageOverlay').classList.add('show');
 }
 
-function roundRect(ctx, x, y, w, h, r) {
+function roundRectFill(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -1369,6 +1316,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
+  ctx.fill();
 }
 
 function saveResultImage() {
@@ -1380,14 +1328,12 @@ function saveResultImage() {
   showToast('图片已保存');
 }
 
-// 2. 复制结果链接（URL hash 编码）
+// ================================================================
+//  复制结果链接（URL hash 编码）
+// ================================================================
 function copyResultLink() {
-  if (!answers || Object.keys(answers).length === 0) {
-    showToast('请先完成测评');
-    return;
-  }
+  if (!answers || Object.keys(answers).length === 0) { showToast('请先完成测评'); return; }
 
-  // 压缩编码：只保留核心推荐字段
   var core = {};
   var fields = ['budget', 'use_case', 'switch_pref', 'switch_feel', 'layout', 'wireless', 'features', 'sound', 'environment', 'experience', 'numpad', 'appearance'];
   for (var i = 0; i < fields.length; i++) {
@@ -1401,13 +1347,14 @@ function copyResultLink() {
   var url = window.location.protocol + '//' + window.location.host + window.location.pathname + '#r=' + encoded;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(function() {
-      showToast('✅ 结果链接已复制！朋友打开直接看推荐');
-    }).catch(function() { fallbackCopy(url); showToast('✅ 结果链接已复制！'); });
-  } else { fallbackCopy(url); showToast('✅ 结果链接已复制！'); }
+    navigator.clipboard.writeText(url).then(function() { showToast('结果链接已复制！朋友打开直接看推荐'); })
+      .catch(function() { fallbackCopy(url); showToast('结果链接已复制！'); });
+  } else { fallbackCopy(url); showToast('结果链接已复制！'); }
 }
 
-// 3. 从 URL hash 恢复结果
+// ================================================================
+//  从 URL hash 恢复结果
+// ================================================================
 function loadResultFromHash() {
   var hash = window.location.hash;
   if (!hash || hash.indexOf('#r=') !== 0) return false;
@@ -1418,21 +1365,18 @@ function loadResultFromHash() {
     var data = JSON.parse(json);
     if (!data || Object.keys(data).length < 3) return false;
 
-    // 还原到 answers
     for (var key in data) {
       if (data.hasOwnProperty(key)) answers[key] = data[key];
     }
 
-    // 跳过问卷，直接展示结果
     var rec = generateRecommendation(answers);
     renderRecommendation(rec);
     $('#surveyContainer').style.display = 'none';
     $('#resultScreen').classList.add('show');
-    document.title = '⌨️ 键盘推荐结果';
+    document.title = '键盘推荐结果';
     submitted = true;
     return true;
   } catch(e) {
-    console.log('Hash load failed:', e);
     return false;
   }
 }
@@ -1441,7 +1385,6 @@ function loadResultFromHash() {
 //  启动
 // ================================================================
 document.addEventListener('DOMContentLoaded', function() {
-  // 先检查 URL hash 是否有结果 → 直接展示推荐
   if (!loadResultFromHash()) {
     renderQuestions();
   }
