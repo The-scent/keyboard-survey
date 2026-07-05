@@ -612,13 +612,17 @@ function generateModels(opts) {
       { name: '达尔优 EK75', price: '129~179', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '旋钮'], reason: '75%配列+旋钮，性价比极高', features: ['hotswap', 'rgb', 'knob'] },
       { name: '狼蛛 F87 Pro', price: '149~199', layouts: ['tkl', 'pct75'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket'], reason: 'Gasket结构手感软弹', features: ['hotswap', 'rgb'] },
       { name: 'VGN N75', price: '99~159', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB'], reason: '75配列入门卷王', features: ['hotswap', 'rgb'] },
+      { name: '前行者 X87', price: '109~159', layouts: ['full', 'tkl'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['全尺寸'], reason: '超低价入门全尺寸，办公够用', features: [] },
     ],
     '200to400': [
+      { name: 'RK R100', price: '269~349', layouts: ['full', 'tkl'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '全尺寸', '无线', '蓝牙'], reason: '全尺寸三模热插拔，办公无线首选', features: ['hotswap', 'rgb'] },
       { name: 'Keychron V1', price: '298~358', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'QMK/VIA', 'Gasket'], reason: '开源固件+全键可编程', features: ['hotswap', 'rgb', 'qmk_via'] },
       { name: 'RK R75', price: '199~279', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '旋钮'], reason: '75%+旋钮+热插拔，性价比标杆', features: ['hotswap', 'rgb', 'knob'] },
       { name: 'NuPhy Air60 V2', price: '399~499', layouts: ['pct60'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['矮轴', '无线', '便携'], reason: '超薄矮轴无线，便携首选', features: [] },
       { name: 'MCHOSE G75', price: '249~329', layouts: ['pct75'], switches: ['linear', 'tactile', 'magnetic'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '磁轴可选'], reason: '支持磁轴版本', features: ['hotswap', 'rgb'] },
+      { name: '前行者 X87 三模', price: '169~229', layouts: ['full', 'tkl'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['全尺寸', '无线', '蓝牙', '三模'], reason: '全尺寸三模无线，百元级办公首选', features: [] },
       { name: 'Leobog Hi75', price: '239~299', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket', '铝壳'], reason: '百元价位铝壳体', features: ['hotswap', 'rgb'] },
+      { name: '达尔优 EK868', price: '299~379', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['矮轴', '无线', '蓝牙', '便携'], reason: '矮轴无线双模，办公安静之选', features: [] },
     ],
     '400to800': [
       { name: 'Keychron V3 Max', price: '548~658', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', 'QMK/VIA', '三模'], reason: '三模+QMK，程序员退烧之选', features: ['hotswap', 'rgb', 'qmk_via'] },
@@ -1002,7 +1006,7 @@ function submitSurvey() {
   submitted = true;
 
   var rec = generateRecommendation(answers);
-  renderRecommendation(rec);
+  renderRecommendation(rec, answers);
 
   $('#surveyContainer').style.display = 'none';
   $('#resultScreen').classList.add('show');
@@ -1010,7 +1014,8 @@ function submitSurvey() {
   showToast('推荐已生成！');
 }
 
-function renderRecommendation(rec) {
+function renderRecommendation(rec, userAnswers) {
+  if (!userAnswers) userAnswers = answers;
   var container = $('#recommendationContent');
   var html = '';
 
@@ -1049,6 +1054,34 @@ function renderRecommendation(rec) {
       html += '</div>';
     }
     html += '</div>';
+
+    // 温馨提示：需求组合较特殊时给出说明
+    var toughCombos = [];
+    var ua = userAnswers;
+    var isOfficeWireless = ua.wireless === 'must_wireless' && ua.environment === 'office';
+    var isFullNoBudget = ua.layout === 'full' && ua.budget === '200to400';
+    var wantCharge = ua.features && ua.features.indexOf('wireless_charge') !== -1;
+    var wantSilent = ua.sound === 'silent_s';
+
+    if (isFullNoBudget && wantCharge) {
+      toughCombos.push('全尺寸 + 无线充电在 400 元以内比较少见，建议放宽预算或选择有线方案');
+    }
+    if (isOfficeWireless && wantSilent && ua.budget === '200to400') {
+      toughCombos.push('无线 + 静音轴体在入门价位选择较少，可以考虑有线+静音的组合');
+    }
+    if (isFullNoBudget && ua.wireless === 'must_wireless') {
+      toughCombos.push('全尺寸三模无线机械键盘在 400 元以内选择有限，以下是最值得入手的几款');
+    }
+
+    if (toughCombos.length > 0) {
+      html += '<div style="margin-top:12px;padding:12px 16px;background:#FFF8E1;border-radius:10px;border:1px solid #FFE69C;font-size:13px;color:#856404;">';
+      html += '💡 <strong>温馨提示：</strong><br>';
+      for (var tc = 0; tc < toughCombos.length; tc++) {
+        html += '• ' + toughCombos[tc] + '<br>';
+      }
+      html += '</div>';
+    }
+
     html += '<div style="font-size:12px;color:var(--text-secondary);padding:8px 4px;text-align:center;">建议去实体店试打或看详细评测后再决定</div>';
   }
 
@@ -1370,7 +1403,7 @@ function loadResultFromHash() {
     }
 
     var rec = generateRecommendation(answers);
-    renderRecommendation(rec);
+    renderRecommendation(rec, answers);
     $('#surveyContainer').style.display = 'none';
     $('#resultScreen').classList.add('show');
     document.title = '键盘推荐结果';
