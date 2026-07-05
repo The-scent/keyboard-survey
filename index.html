@@ -426,11 +426,13 @@ var QUESTIONS = [
     title: '你想要的键盘有多大？',
     sub: '配列决定按键数量和桌面占用',
     options: [
-      { value: 'full',    label: '全尺寸（带数字区）', desc: '需要经常输入数字' },
-      { value: 'tkl',     label: 'TKL / 87键（无数字区）', desc: '常用功能键，节省桌面' },
+      { value: 'full',    label: '全尺寸（104键/100%）', desc: '独立功能区，桌面空间大' },
+      { value: 'pct98',   label: '98键 / 96% 紧凑全尺寸', desc: '有数字区但比全尺寸紧凑，目前很流行' },
+      { value: 'tkl',     label: 'TKL / 87键（80%）', desc: '无数字区，常用功能键保留' },
       { value: 'pct75',   label: '75%（约84键）', desc: '紧凑又有功能键，目前最流行' },
       { value: 'pct65',   label: '65%（约68键）', desc: '有方向键，极简' },
-      { value: 'pct60',   label: '60%（约61键）', desc: '极致便携' },
+      { value: 'pct60',   label: '60%（约61键）', desc: '极致便携，无F区无方向键' },
+      { value: 'alice',   label: 'Alice / 人体工学分体', desc: '分体式布局，打字更自然' },
       { value: 'no_pref', label: '没概念 / 帮我推荐', desc: '选最合适的' },
     ]
   },
@@ -467,8 +469,8 @@ var QUESTIONS = [
     title: '你经常需要输入数字吗？',
     sub: '比如财务、记账、数据录入',
     options: [
-      { value: 'yes',    label: '经常需要', desc: '建议全尺寸或分离数字区' },
-      { value: 'some',   label: '偶尔用', desc: '可以考虑 1800 紧凑配列' },
+      { value: 'yes',    label: '经常需要', desc: '建议全尺寸或98键紧凑配列' },
+      { value: 'some',   label: '偶尔用', desc: '98键/1800紧凑配列最合适' },
       { value: 'no',     label: '基本不用', desc: 'TKL 或更小配列即可' },
     ]
   },
@@ -574,7 +576,7 @@ function generateRecommendation(answers) {
 
   var recLayout = layout;
   if (recLayout === 'no_pref') {
-    if (numpad === 'yes') recLayout = 'full';
+    if (numpad === 'yes') recLayout = 'pct98';
     else if (isGaming && !isTyping) recLayout = 'tkl';
     else recLayout = 'pct75';
   }
@@ -588,7 +590,7 @@ function generateRecommendation(answers) {
     else recSwitchType = 'linear';
   }
 
-  var layoutNames = { full:'全尺寸', tkl:'TKL 87键', pct75:'75% 紧凑', pct65:'65%', pct60:'60%', no_pref:'灵活' };
+  var layoutNames = { full:'全尺寸', pct98:'98键紧凑', tkl:'TKL 87键', pct75:'75% 紧凑', pct65:'65%', pct60:'60%', alice:'Alice人体工学', no_pref:'灵活' };
   var switchNames = { linear:'线性轴', tactile:'段落轴', clicky:'清脆轴', silent:'静音轴', magnetic:'磁轴', describe:'待定' };
 
   var tags = [];
@@ -679,37 +681,41 @@ function generateModels(opts) {
       { name: '达尔优 EK868', price: '299~379', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['矮轴', '无线', '蓝牙', '便携'], reason: '矮轴无线双模，办公安静之选', features: [], link: 'https://search.jd.com/Search?keyword=达尔优EK868%20机械键盘' },
       { name: '黑爵 AK820 Pro', price: '199~299', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '旋钮', '无线', '蓝牙'], reason: '75%三模热插拔+旋钮，配置拉满', features: ['hotswap', 'rgb', 'knob'], link: 'https://search.jd.com/Search?keyword=黑爵AK820%20Pro%20机械键盘' },
       { name: 'VGN S99', price: '299~399', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', 'Gasket', '无线'], reason: 'Gasket结构三模，品质越级', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=VGN%20S99%20机械键盘' },
-      { name: '狼蛛 F98', price: '199~299', layouts: ['full'], switches: ['linear', 'tactile', 'clicky'], wireless: ['must_wireless', 'nice_have'], tags: ['全尺寸', '热插拔', 'RGB', '无线', '蓝牙'], reason: '全尺寸三模热插拔，游戏办公两用', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=狼蛛F98%20机械键盘' },
+      { name: '狼蛛 F98', price: '199~299', layouts: ['pct98'], switches: ['linear', 'tactile', 'clicky'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', '无线', '蓝牙'], reason: '98键三模热插拔，游戏办公两用', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=狼蛛F98%20机械键盘' },
       { name: '达尔优 A87', price: '249~349', layouts: ['tkl'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket'], reason: '达尔优中端TKL，Gasket手感好', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=达尔优A87%20机械键盘' },
       { name: '雷柏 V700-8A', price: '199~299', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '无线', '蓝牙'], reason: 'TKL三模热插拔，功能全面', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=雷柏V700-8A%20机械键盘' },
       { name: '珂芝 K61', price: '249~339', layouts: ['pct60'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket', '便携'], reason: '60%紧凑Gasket结构，学生宿舍优选', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=珂芝K61%20机械键盘' },
-      { name: '腹灵 FL980', price: '299~399', layouts: ['full'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket', '经典'], reason: '98配列经典之作，手感口碑俱佳', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=腹灵FL980%20机械键盘' },
+      { name: '腹灵 FL980', price: '299~399', layouts: ['pct98', 'full'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['98配列', '热插拔', 'RGB', 'Gasket', '经典'], reason: '98配列经典之作，手感口碑俱佳', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=腹灵FL980%20机械键盘' },
       { name: '新盟 M87 Pro', price: '199~279', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '无线', '蓝牙'], reason: 'TKL三模热插拔入门无线', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=新盟M87%20Pro%20机械键盘' },
       { name: 'RK R65', price: '199~269', layouts: ['pct65'], switches: ['linear', 'tactile', 'magnetic'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '便携'], reason: '65%紧凑配列，支持磁轴', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=RK%20R65%20机械键盘' },
       { name: '黑峡谷 X3', price: '229~299', layouts: ['tkl'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['热插拔', 'PBT键帽'], reason: '凯华BOX轴+PBT键帽，品质扎实', features: ['hotswap'], link: 'https://search.jd.com/Search?keyword=黑峡谷X3%20机械键盘' },
-      { name: '狼蛛 F99', price: '249~349', layouts: ['full'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['全尺寸', '热插拔', 'RGB', '无线', '蓝牙', 'Gasket'], reason: '99键全尺寸Gasket三模，配置全面', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=狼蛛F99%20机械键盘' },
-      { name: '前行者 V98', price: '189~259', layouts: ['full'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['全尺寸', '无线', '蓝牙', '三模'], reason: '百元级全尺寸三模，性价比杀器', features: [], link: 'https://search.jd.com/Search?keyword=前行者V98%20机械键盘' },
+      { name: '狼蛛 F99', price: '249~349', layouts: ['pct98', 'full'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', '无线', '蓝牙', 'Gasket'], reason: '99键Gasket三模，配置全面', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=狼蛛F99%20机械键盘' },
+      { name: '前行者 V98', price: '189~259', layouts: ['pct98'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '无线', '蓝牙', '三模'], reason: '百元级98键三模，性价比杀器', features: [], link: 'https://search.jd.com/Search?keyword=前行者V98%20机械键盘' },
       { name: '双飞燕 FG2020', price: '169~229', layouts: ['full'], switches: ['linear', 'tactile'], wireless: ['must_wireless'], tags: ['全尺寸', '无线', '蓝牙', '办公'], reason: '无线机械键盘，办公续航长', features: [], link: 'https://search.jd.com/Search?keyword=双飞燕FG2020%20机械键盘' },
       { name: '雷神 KG8104R', price: '179~259', layouts: ['full'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['全尺寸', 'RGB', '电竞'], reason: '入门电竞全尺寸，RGB灯效丰富', features: ['rgb'], link: 'https://search.jd.com/Search?keyword=雷神KG8104R%20机械键盘' },
       { name: '御斧 R68', price: '299~389', layouts: ['pct65'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '无线', '蓝牙', '铝壳'], reason: '铝壳65%三模，做工精良', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=御斧R68%20机械键盘' },
+      { name: 'Leobog Hi98', price: '289~369', layouts: ['pct98'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['98配列', '热插拔', 'RGB', 'Gasket'], reason: '98键Gasket结构，声音手感越级', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=Leobog%20Hi98%20机械键盘' },
+      { name: '黑爵 AK980', price: '249~329', layouts: ['pct98'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', '旋钮', '三模'], reason: '98键三模热插拔+旋钮，性价比高', features: ['hotswap', 'rgb', 'knob'], link: 'https://search.jd.com/Search?keyword=黑爵AK980%20机械键盘' },
+      { name: 'MCHOSE G98', price: '229~299', layouts: ['pct98'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['98配列', '热插拔', 'RGB', 'Gasket'], reason: '98键Gasket热插拔，入门98首选', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=MCHOSE%20G98%20机械键盘' },
       { name: '魔炼者 MK61', price: '149~199', layouts: ['pct60'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['RGB', '便携'], reason: '60%小配列，超低价入手体验', features: ['rgb'], link: 'https://search.jd.com/Search?keyword=魔炼者MK61%20机械键盘' },
     ],
     '400to800': [
       { name: 'Keychron V3 Max', price: '548~658', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', 'QMK/VIA', '三模'], reason: '三模+QMK，程序员退烧之选', features: ['hotswap', 'rgb', 'qmk_via'], link: 'https://search.jd.com/Search?keyword=Keychron%20V3%20Max%20机械键盘' },
       { name: 'NuPhy Halo75', price: '699~899', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '三模', '设计感'], reason: '颜值天花板，三模+热插拔', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=NuPhy%20Halo75%20机械键盘' },
+      { name: 'RK S98', price: '449~599', layouts: ['pct98'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', '旋钮', '三模'], reason: '98键三模+旋钮，做工扎实功能全', features: ['hotswap', 'rgb', 'knob'], link: 'https://search.jd.com/Search?keyword=RK%20S98%20机械键盘' },
       { name: 'Ducky One 3', price: '599~799', layouts: ['full', 'tkl', 'pct65'], switches: ['linear', 'tactile', 'clicky', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '经典'], reason: '经典品牌，做工扎实', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=Ducky%20One%203%20机械键盘' },
       { name: 'Wooting 60HE+', price: '799~999', layouts: ['pct60'], switches: ['magnetic'], wireless: ['wired_only'], tags: ['磁轴', '电竞'], reason: '电竞天花板，磁轴可调键程', features: [], link: 'https://search.jd.com/Search?keyword=Wooting%2060HE%2B%20机械键盘' },
       { name: 'MonsGeek M1', price: '499~699', layouts: ['tkl', 'pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '铝壳', 'QMK'], reason: '铝壳+Gasket，声音手感俱佳', features: ['hotswap', 'rgb', 'qmk_via'], link: 'https://search.jd.com/Search?keyword=MonsGeek%20M1%20机械键盘' },
       { name: '腹灵 CMK87', price: '499~699', layouts: ['tkl'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '铝壳', 'Gasket'], reason: 'TKL铝壳Gasket，品质飞跃', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=腹灵CMK87%20机械键盘' },
-      { name: '达尔优 A98', price: '499~699', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '旋钮', 'Gasket'], reason: '达尔优旗舰手感，Gasket结构出色', features: ['hotswap', 'rgb', 'knob'], link: 'https://search.jd.com/Search?keyword=达尔优A98%20机械键盘' },
-      { name: '珂芝 Z98', price: '499~699', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '小屏幕', '三模'], reason: '带小屏幕的75%三模键盘', features: ['hotswap', 'rgb', 'screen'], link: 'https://search.jd.com/Search?keyword=珂芝Z98%20机械键盘' },
+      { name: '达尔优 A98', price: '499~699', layouts: ['pct98'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['98配列', '热插拔', 'RGB', '旋钮', 'Gasket'], reason: '达尔优旗舰Gasket手感，98键经典', features: ['hotswap', 'rgb', 'knob'], link: 'https://search.jd.com/Search?keyword=达尔优A98%20机械键盘' },
+      { name: '珂芝 Z98', price: '499~699', layouts: ['pct98'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', '小屏幕', '三模'], reason: '98键带小屏幕三模，功能全面', features: ['hotswap', 'rgb', 'screen'], link: 'https://search.jd.com/Search?keyword=珂芝Z98%20机械键盘' },
       { name: '御斧 Y87', price: '449~599', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '无线', '铝壳'], reason: '铝壳TKL三模，性价比之选', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=御斧Y87%20机械键盘' },
       { name: '罗技 G613', price: '499~699', layouts: ['full'], switches: ['linear', 'tactile'], wireless: ['must_wireless'], tags: ['无线', '办公', '罗技'], reason: '罗技大厂无线，续航变态', features: [], link: 'https://search.jd.com/Search?keyword=罗技G613%20机械键盘' },
       { name: '雷蛇黑寡妇V3', price: '599~799', layouts: ['full', 'tkl'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['RGB', '电竞', '雷蛇'], reason: '雷蛇经典，RGB灯效无敌', features: ['rgb'], link: 'https://search.jd.com/Search?keyword=雷蛇黑寡妇V3%20机械键盘' },
       { name: '杜伽 K610W', price: '549~749', layouts: ['tkl'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['无线', '蓝牙', '三模', '经典'], reason: '杜伽经典三模，手感均衡', features: [], link: 'https://search.jd.com/Search?keyword=杜伽K610W%20机械键盘' },
-      { name: '京东京造 JZ990', price: '449~599', layouts: ['full'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['全尺寸', '热插拔', 'RGB', '无线'], reason: '京东自有品牌，全尺寸三模热插拔', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=京东京造JZ990%20机械键盘' },
+      { name: '京东京造 JZ990', price: '449~599', layouts: ['pct98', 'full'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', '无线'], reason: '99键紧凑三模热插拔，京东精品', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=京东京造JZ990%20机械键盘' },
       { name: '阿米洛 Miya68', price: '599~799', layouts: ['pct65'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['设计感', '经典', 'PBT热升华'], reason: '设计感极佳的65%键盘', features: [], link: 'https://search.jd.com/Search?keyword=阿米洛Miya68%20机械键盘' },
-      { name: 'VGN V98 Pro', price: '499~699', layouts: ['full'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['全尺寸', '热插拔', 'RGB', 'Gasket', '无线'], reason: '98配列Gasket三模，竞争力强', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=VGN%20V98%20Pro%20机械键盘' },
+      { name: 'VGN V98 Pro', price: '499~699', layouts: ['pct98'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '热插拔', 'RGB', 'Gasket', '无线'], reason: '98配列Gasket三模，竞争力强', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=VGN%20V98%20Pro%20机械键盘' },
       { name: 'Keychron K8 Pro', price: '499~699', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'QMK/VIA', 'Gasket'], reason: 'TKL版QMK开源固件，可编程', features: ['hotswap', 'rgb', 'qmk_via'], link: 'https://search.jd.com/Search?keyword=Keychron%20K8%20Pro%20机械键盘' },
       { name: '黑爵 ACR68', price: '449~599', layouts: ['pct65'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '铝壳', 'QMK'], reason: '铝壳65%客制化体验，QMK支持', features: ['hotswap', 'rgb', 'qmk_via'], link: 'https://search.jd.com/Search?keyword=黑爵ACR68%20机械键盘' },
       { name: '摩豹 CK80', price: '399~599', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '无线'], reason: '中端三模热插拔，功能齐全', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=摩豹CK80%20机械键盘' },
@@ -727,7 +733,7 @@ function generateModels(opts) {
       { name: '雷蛇 猎魂光蛛 V2', price: '999~1399', layouts: ['full', 'tkl'], switches: ['linear', 'clicky'], wireless: ['wired_only'], tags: ['RGB', '电竞', '光轴'], reason: '雷蛇光轴，触发极快', features: ['rgb'], link: 'https://search.jd.com/Search?keyword=雷蛇猎魂光蛛V2%20机械键盘' },
       { name: '利奥博德 FC660M', price: '899~1199', layouts: ['pct65'], switches: ['linear', 'tactile', 'silent'], wireless: ['wired_only'], tags: ['做工顶级', 'PBT键帽'], reason: '65%配列做工天花板，PBT键帽', features: [], link: 'https://search.jd.com/Search?keyword=利奥博德FC660M%20机械键盘' },
       { name: 'Keychron Q3', price: '999~1299', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['铝壳', 'QMK/VIA', 'Gasket'], reason: '全铝TKL，QMK开源固件', features: ['hotswap', 'qmk_via'], link: 'https://search.jd.com/Search?keyword=Keychron%20Q3%20机械键盘' },
-      { name: 'iQunix F97', price: '999~1399', layouts: ['full'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['铝壳', '三模', '设计感'], reason: '铝合金机身，设计做工一流', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=iQunix%20F97%20机械键盘' },
+      { name: 'iQunix F97', price: '999~1399', layouts: ['pct98'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['98配列', '铝壳', '三模', '设计感'], reason: '铝合金机身97键，设计做工一流', features: ['hotswap', 'rgb'], link: 'https://search.jd.com/Search?keyword=iQunix%20F97%20机械键盘' },
       { name: '宁芝 Niz 静电容', price: '899~1299', layouts: ['full', 'tkl', 'pct75'], switches: ['es_capacitive'], wireless: ['wired_only'], tags: ['静电容', '办公', '经典'], reason: '国产静电容，性价比之选', features: [], link: 'https://search.jd.com/Search?keyword=宁芝静电容%20键盘' },
       { name: '斐尔可 忍者', price: '999~1299', layouts: ['full', 'tkl'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['经典', '耐用', '日系'], reason: '日系经典，手感一致性极佳', features: [], link: 'https://search.jd.com/Search?keyword=斐尔可忍者%20机械键盘' },
     ],
@@ -784,7 +790,7 @@ function generateModels(opts) {
     var score = 0;
 
     if (item.layouts.indexOf(recLayout) !== -1) score += 10;
-    if (recLayout === 'no_pref' && item.layouts.indexOf('pct75') !== -1) score += 5;
+    if (recLayout === 'no_pref' && (item.layouts.indexOf('pct75') !== -1 || item.layouts.indexOf('pct98') !== -1)) score += 5;
     if (item.switches.indexOf(recSwitchType) !== -1) score += 10;
     if (recSwitchType === 'magnetic' && item.switches.indexOf('magnetic') !== -1) score += 10;
     if (recSwitchType === 'silent' && item.switches.indexOf('silent') !== -1) score += 5;
@@ -796,7 +802,7 @@ function generateModels(opts) {
     if (isGaming) {
       if (item.switches.indexOf('magnetic') !== -1) score += 3;
       if (item.tags.indexOf('电竞') !== -1) score += 3;
-      if (item.layouts.indexOf('tkl') !== -1 || item.layouts.indexOf('pct60') !== -1) score += 2;
+      if (item.layouts.indexOf('tkl') !== -1 || item.layouts.indexOf('pct60') !== -1 || item.layouts.indexOf('pct98') !== -1) score += 2;
     }
     if (isTyping) {
       if (item.tags.indexOf('Gasket') !== -1 || item.tags.indexOf('铝壳') !== -1) score += 2;
@@ -804,6 +810,7 @@ function generateModels(opts) {
     if (environment === 'office' || environment === 'dorm') {
       if (item.switches.indexOf('silent') !== -1) score += 3;
     }
+    if (recLayout === 'alice' && item.layouts.indexOf('alice') !== -1) score += 8;
     if (experience === 'never' && parseInt(item.price) < 500) score += 2;
     if (appearance === 'looks' && item.tags.indexOf('设计感') !== -1) score += 3;
     if (painPoints.indexOf('sound') !== -1 && item.tags.some(function(t) { return ['Gasket', '铝壳', '静音'].indexOf(t) !== -1; })) score += 2;
