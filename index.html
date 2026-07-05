@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⌨️ 键盘选型助手 — 帮你找到最适合的键盘</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #4F6EF7; --primary-dark: #3A56D4; --primary-light: #E8ECFF;
+    --accent: #FF6B6B; --bg: #F5F7FB; --card-bg: #FFFFFF;
+    --text: #2D3436; --text-secondary: #636E72; --border: #DFE6E9;
+    --radius: 16px; --shadow: 0 4px 24px rgba(79,110,247,0.10);
+    --transition: 0.3s cubic-bezier(.4,0,.2,1); --success: #00B894;
+  }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    min-height: 100vh; padding-bottom: 40px; -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, #7C5CFC 100%);
+    color: white; padding: 44px 24px 36px; text-align: center; position: relative; overflow: hidden;
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -20px; left: -10%; width: 120%; height: 40px;
+    background: var(--bg); border-radius: 50% 50% 0 0;
+  }
+  .header-icon { font-size: 48px; margin-bottom: 8px; display: block; }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .header p { font-size: 14px; opacity: 0.85; max-width: 320px; margin: 0 auto; }
+
+  .progress-bar {
+    position: sticky; top: 0; z-index: 10; background: var(--bg); padding: 10px 24px 6px;
+  }
+  .progress-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--primary), #7C5CFC);
+    border-radius: 3px; transition: width 0.5s ease; width: 0%;
+  }
+  .progress-text { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .progress-text span:last-child { color: var(--primary); font-weight: 600; }
+
+  .survey-container { max-width: 560px; margin: 0 auto; padding: 16px 16px 60px; }
+
+  .question-card {
+    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 24px 20px; margin-bottom: 14px;
+    opacity: 0; transform: translateY(20px); transition: opacity 0.4s ease, transform 0.4s ease;
+    display: none;
+  }
+  .question-card.active { display: block; opacity: 1; transform: translateY(0); }
+
+  .q-number {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--primary-light); color: var(--primary);
+    font-size: 13px; font-weight: 700; margin-bottom: 10px;
+  }
+  .q-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; line-height: 1.4; }
+  .q-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
+
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option-item {
+    padding: 13px 16px; border: 2px solid var(--border); border-radius: 12px;
+    cursor: pointer; transition: all var(--transition); background: #FAFBFC;
+    display: flex; align-items: center; gap: 12px; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .option-item:hover { border-color: var(--primary); background: var(--primary-light); }
+  .option-item.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 1px var(--primary); }
+  .option-item .dot {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .option-item.selected .dot { border-color: var(--primary); background: var(--primary); }
+  .option-item .dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: white; transform: scale(0); transition: transform var(--transition); }
+  .option-item.selected .dot::after { transform: scale(1); }
+  .option-item .box {
+    width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--border);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .option-item.selected .box { border-color: var(--primary); background: var(--primary); }
+  .option-item .box::after { content: '\2713'; color: white; font-size: 13px; font-weight: 700; transform: scale(0); transition: transform var(--transition); }
+  .option-item.selected .box::after { transform: scale(1); }
+  .option-item .label { font-size: 15px; flex: 1; }
+  .option-item .desc { font-size: 12px; color: var(--text-secondary); display: block; margin-top: 1px; }
+
+  .text-input {
+    width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 12px;
+    font-size: 15px; font-family: inherit; transition: border-color var(--transition);
+    background: #FAFBFC; outline: none; min-height: 44px;
+  }
+  .text-input:focus { border-color: var(--primary); background: white; }
+
+  .nav-buttons { display: flex; gap: 12px; margin-top: 18px; }
+  .nav-buttons .left-group { display: flex; gap: 8px; flex: 1; }
+  .nav-buttons .right-group { display: flex; gap: 8px; flex: 1; justify-content: flex-end; }
+  .btn {
+    padding: 14px 20px; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: all var(--transition); font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--primary); color: white; min-width: 100px; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { background: var(--border); color: #AAA; cursor: not-allowed; transform: none; }
+  .btn-secondary { background: var(--card-bg); color: var(--text-secondary); border: 2px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-skip {
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 14px; cursor: pointer; padding: 14px 12px;
+    transition: color var(--transition); font-family: inherit; white-space: nowrap;
+  }
+  .btn-skip:hover { color: var(--primary); }
+
+  /* ===== 推荐结果页 ===== */
+  .result-screen { display: none; padding: 20px 16px 40px; max-width: 560px; margin: 0 auto; }
+  .result-screen.show { display: block; animation: fadeInUp 0.6s ease; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  .result-header { text-align: center; padding: 20px 0 24px; }
+  .result-header .icon { font-size: 56px; display: block; margin-bottom: 8px; }
+  .result-header h2 { font-size: 22px; font-weight: 700; }
+  .result-header p { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+
+  .rec-card {
+    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 24px; margin-bottom: 16px; border-left: 4px solid var(--primary);
+  }
+  .rec-card .tag {
+    display: inline-block; background: var(--primary-light); color: var(--primary);
+    font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 600; margin-bottom: 10px;
+  }
+  .rec-card h3 { font-size: 20px; margin-bottom: 4px; }
+  .rec-card .sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 14px; }
+
+  .rec-section { margin-bottom: 16px; }
+  .rec-section h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .rec-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rec-tag {
+    padding: 6px 14px; border-radius: 20px; font-size: 13px;
+    background: var(--primary-light); color: var(--primary); font-weight: 500;
+  }
+  .rec-tag.highlight { background: var(--primary); color: white; }
+
+  .rec-detail { margin-top: 12px; }
+  .rec-detail-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0;
+    border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  .rec-detail-item:last-child { border-bottom: none; }
+  .rec-detail-item .emoji { font-size: 18px; width: 28px; text-align: center; }
+
+  .rec-models {
+    background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 20px 24px; margin-top: 16px;
+  }
+  .rec-models h4 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .model-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .model-item:last-child { border-bottom: none; }
+  .model-item .rank { font-size: 20px; width: 32px; text-align: center; }
+  .model-item .info { flex: 1; }
+  .model-item .info .name { font-size: 15px; font-weight: 600; }
+  .model-item .info .reason { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .model-item .price { font-size: 15px; font-weight: 600; color: var(--primary); white-space: nowrap; }
+
+  .result-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .result-actions .btn { flex: none; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-success:hover { background: #00A381; }
+
+  .share-section { margin-top: 16px; padding: 20px; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); display: none; }
+  .share-section.show { display: block; animation: fadeInUp 0.4s ease; }
+  .share-section h3 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .share-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .share-btn {
+    width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; font-size: 22px;
+    display: flex; align-items: center; justify-content: center; transition: all var(--transition); color: white;
+  }
+  .share-btn:active { transform: scale(0.9); }
+  .share-btn.wechat { background: #07C160; }
+  .share-btn.moments { background: #07C160; }
+  .share-btn.copy { background: var(--primary); }
+  .share-btn.qrcode { background: #2D3436; }
+  .share-tip { font-size: 13px; color: var(--text-secondary); margin-top: 10px; padding: 10px; background: #FFF3CD; border-radius: 8px; border: 1px solid #FFE69C; }
+
+  .toast {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: #2D3436; color: white; padding: 10px 22px; border-radius: 10px;
+    font-size: 14px; opacity: 0; transition: all 0.4s ease; z-index: 100; white-space: nowrap; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .footer { text-align: center; padding: 16px; font-size: 12px; color: var(--text-secondary); opacity: 0.6; }
+  .footer a { color: inherit; }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1A1B2E; --card-bg: #242538; --text: #EEEEF0;
+      --text-secondary: #9A9BB0; --border: #3A3B55; --primary-light: #2D3270;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .option-item { background: #2A2B42; }
+    .option-item.selected { background: #2D3270; }
+    .text-input { background: #2A2B42; color: var(--text); }
+    .text-input:focus { background: #242538; }
+    .share-tip { background: #3A3B55; border-color: #4A4B65; color: #DDD; }
+    .header { background: linear-gradient(135deg, #3A56D4, #5C3CFC); }
+    .btn-secondary { background: #242538; color: var(--text-secondary); }
+  }
+
+  @media (max-width: 400px) {
+    .header { padding: 36px 20px 28px; }
+    .header h1 { font-size: 18px; }
+    .question-card { padding: 20px 16px; }
+    .option-item { padding: 12px 14px; }
+    .q-title { font-size: 15px; }
+    .rec-card { padding: 18px; }
+    .btn-skip { font-size: 13px; padding: 14px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="header-icon">⌨️</span>
+  <h1>键盘选型助手</h1>
+  <p>回答几个简单问题，帮你找到最适合的键盘</p>
+</header>
+
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-text">
+    <span>答题进度</span>
+    <span id="progressText">0 / 0</span>
+  </div>
+</div>
+
+<div class="survey-container" id="surveyContainer"></div>
+
+<!-- 推荐结果页 -->
+<div class="result-screen" id="resultScreen">
+  <div class="result-header">
+    <span class="icon">🎯</span>
+    <h2>你的专属键盘推荐</h2>
+    <p>根据你的回答，我们为你推荐以下方案</p>
+  </div>
+
+  <div id="recommendationContent"></div>
+
+  <div class="result-actions">
+    <button class="btn btn-success" onclick="scrollToShare()">📤 分享给朋友</button>
+    <button class="btn btn-outline" id="btnRerun" onclick="resetSurvey()" style="border:2px solid var(--border);background:var(--card-bg);color:var(--text-secondary);border-radius:12px;font-size:16px;font-weight:600;padding:14px;font-family:inherit;cursor:pointer;">🔄 重新测评</button>
+    <button class="btn btn-outline" onclick="exportResult()" style="border:2px solid var(--border);background:var(--card-bg);color:var(--text-secondary);border-radius:12px;font-size:16px;font-weight:600;padding:14px;font-family:inherit;cursor:pointer;">📋 查看我的回答</button>
+  </div>
+
+  <div class="share-section" id="shareSection">
+    <h3>📤 分享这个选型工具</h3>
+    <div class="share-buttons">
+      <button class="share-btn wechat" onclick="showToast('💡 点击右上角「···」选择「发送给朋友」')">💬</button>
+      <button class="share-btn moments" onclick="showToast('💡 点击右上角「···」选择「分享到朋友圈」')">🌐</button>
+      <button class="share-btn copy" onclick="copyLink()">🔗</button>
+      <button class="share-btn qrcode" onclick="showQRCode()">📱</button>
+    </div>
+    <div class="share-tip">💡 点击右上角「···」也可以分享</div>
+    <div id="qrContainer" style="display:none; margin-top:12px;"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="footer">键盘选型助手 · <a href="#" onclick="exportAllData();return false;">数据管理</a></div>
+
+<script>
+// ================================================================
+//  问卷数据 (12 题，全部服务于选型推荐)
+// ================================================================
+const QUESTIONS = [
+  {
+    id: 'budget',
+    type: 'radio',
+    title: '你的预算是多少？',
+    sub: '这是选键盘最重要的参考因素',
+    options: [
+      { value: 'lt200',     label: '💰 150 元以下', desc: '入门级选择' },
+      { value: '200to400',  label: '💰 150 ~ 400 元', desc: '性价比区间' },
+      { value: '400to800',  label: '💰 400 ~ 800 元', desc: '主流中端' },
+      { value: '800to1500', label: '💰 800 ~ 1500 元', desc: '中高端' },
+      { value: '1500to3000',label: '💰 1500 ~ 3000 元', desc: '高端品质' },
+      { value: 'gt3000',    label: '💰 3000 元以上', desc: '顶级/客制化' },
+    ]
+  },
+  {
+    id: 'use_case',
+    type: 'checkbox',
+    title: '你主要用来做什么？',
+    sub: '可多选，选主要的用途就行',
+    options: [
+      { value: 'typing',   label: '✍️ 打字 / 写代码', desc: '大量文字输入' },
+      { value: 'gaming',   label: '🎮 打游戏', desc: '竞技/单机' },
+      { value: 'office',   label: '💼 办公', desc: '文档/表格/邮件' },
+      { value: 'creative', label: '🎨 创作/剪辑', desc: '设计/音视频' },
+      { value: 'daily',    label: '🏠 日常使用', desc: '浏览/聊天' },
+    ]
+  },
+  {
+    id: 'current_keyboard',
+    type: 'radio',
+    title: '你目前在用什么键盘？',
+    sub: '以及你想升级的原因',
+    options: [
+      { value: 'membrane',    label: '🫧 薄膜键盘', desc: '想体验机械手感' },
+      { value: 'mech_old',    label: '⚙️ 机械键盘（入门）', desc: '想升级更好的' },
+      { value: 'mech_mid',    label: '⚙️ 机械键盘（中端）', desc: '想再添一把' },
+      { value: 'laptop',      label: '💻 笔记本键盘', desc: '想配外接键盘' },
+      { value: 'none_yet',    label: '🆕 还没有键盘', desc: '第一次购买' },
+    ]
+  },
+  {
+    id: 'pain_point',
+    type: 'checkbox',
+    title: '你对当前键盘最不满意的地方？',
+    sub: '可多选，选在意的就行，没有可不选',
+    options: [
+      { value: 'sound',      label: '🔊 声音不好听' },
+      { value: 'feel',       label: '✋ 手感不舒服' },
+      { value: 'layout',     label: '📐 布局不合适' },
+      { value: 'wireless',   label: '📡 没有无线 / 延迟高' },
+      { value: 'looks',      label: '🎨 外观不好看' },
+      { value: 'build',      label: '🏗️ 做工差 / 不耐用' },
+      { value: 'no_rgb',     label: '🌈 没有灯 / 灯效差' },
+      { value: 'no_custom',  label: '🔧 不能换轴 / 客制化' },
+      { value: 'already_ok', label: '✅ 没有不满，就是想添一把' },
+    ]
+  },
+  {
+    id: 'layout',
+    type: 'radio',
+    title: '你想要的键盘有多大？',
+    sub: '配列决定按键数量和桌面占用',
+    options: [
+      { value: 'full',    label: '🖥️ 全尺寸（带数字区）', desc: '需要经常输入数字' },
+      { value: 'tkl',     label: '⌨️ TKL / 87键（无数字区）', desc: '常用功能键，节省桌面' },
+      { value: 'pct75',   label: '📏 75%（约84键）', desc: '紧凑又有功能键，目前最流行' },
+      { value: 'pct65',   label: '📦 65%（约68键）', desc: '有方向键，极简' },
+      { value: 'pct60',   label: '🪄 60%（约61键）', desc: '极致便携' },
+      { value: 'no_pref', label: '🤷 没概念 / 帮我推荐', desc: '选最合适的' },
+    ]
+  },
+  {
+    id: 'switch_pref',
+    type: 'radio',
+    title: '你更喜欢哪种按键手感？',
+    sub: '如果不确定，选最后一项',
+    options: [
+      { value: 'linear',   label: '🟥 直上直下（线性）', desc: '顺滑无段落，如红轴/银轴' },
+      { value: 'tactile',  label: '🟫 有段落感（段落）', desc: '按下有触感，如茶轴' },
+      { value: 'clicky',   label: '🟩 清脆有声音（清脆）', desc: '打字啪啪响，如青轴' },
+      { value: 'silent',   label: '🔇 越静音越好', desc: '在宿舍/办公室用' },
+      { value: 'magnetic', label: '🧲 磁轴（可调触发）', desc: '电竞玩家专用，可调键程' },
+      { value: 'describe', label: '🤷 描述给我听，帮我选', desc: '我不太了解轴体' },
+    ]
+  },
+  {
+    id: 'switch_feel',
+    type: 'radio',
+    title: '你希望打字时的感觉是？',
+    sub: '闭上眼睛想象一下',
+    showIf: { id: 'switch_pref', values: ['describe'] },
+    options: [
+      { value: 'smooth',    label: '🧈 顺滑流畅，像按在奶油上', desc: '推荐线性轴' },
+      { value: 'bumpy',     label: '👆 有明确的段落感', desc: '推荐段落轴' },
+      { value: 'typewriter',label: '📻 像老式打字机，啪嗒啪嗒', desc: '推荐清脆轴' },
+      { value: 'quiet',     label: '🤫 安安静静，不要吵到别人', desc: '推荐静音轴' },
+    ]
+  },
+  {
+    id: 'numpad',
+    type: 'radio',
+    title: '你经常需要输入数字吗？',
+    sub: '比如财务、记账、数据录入',
+    options: [
+      { value: 'yes',    label: '✅ 经常需要', desc: '建议全尺寸或分离数字区' },
+      { value: 'some',   label: '🔄 偶尔用', desc: '可以考虑 1800 紧凑配列' },
+      { value: 'no',     label: '❌ 基本不用', desc: 'TKL 或更小配列即可' },
+    ]
+  },
+  {
+    id: 'wireless',
+    type: 'radio',
+    title: '你需要无线连接吗？',
+    options: [
+      { value: 'must_wireless', label: '📡 必须无线', desc: '桌面整洁 / 多设备切换' },
+      { value: 'nice_have',     label: '🔌 有最好，没有也行', desc: '双模备用' },
+      { value: 'wired_only',    label: '🔗 只要有线', desc: '稳定不操心' },
+    ]
+  },
+  {
+    id: 'features',
+    type: 'checkbox',
+    title: '你想要哪些功能？',
+    sub: '可多选，选你在意的就行，没有可不选',
+    options: [
+      { value: 'hotswap',    label: '🔧 热插拔（免焊换轴）', desc: '方便以后换轴玩' },
+      { value: 'rgb',        label: '🌈 RGB 灯效', desc: '光污染爱好者' },
+      { value: 'knob',       label: '🎛️ 旋钮（音量控制）', desc: '调节音量很方便' },
+      { value: 'screen',     label: '🖥️ 小屏幕（显示信息）', desc: '看时间/电量/状态' },
+      { value: 'qmk_via',    label: '⚙️ QMK/VIA（可编程）', desc: '自由改键位' },
+      { value: 'wireless_charge', label: '⚡ 无线充电', desc: '放下就充' },
+    ]
+  },
+  {
+    id: 'sound',
+    type: 'radio',
+    title: '你喜欢什么样的键盘声音？',
+    sub: '如果无所谓可以不选',
+    options: [
+      { value: 'thock',   label: '🥥 闷厚低沉', desc: '像敲木头/大理石' },
+      { value: 'creamy',  label: '🧈 奶油绵密', desc: '顺滑的小声音' },
+      { value: 'clack',   label: '🔔 清脆响亮', desc: '像敲钢板' },
+      { value: 'silent_s',label: '🔇 近乎无声', desc: '越安静越好' },
+      { value: 'no_care', label: '🤷 无所谓', desc: '手感比声音重要' },
+    ]
+  },
+  {
+    id: 'appearance',
+    type: 'radio',
+    title: '你更看重外观还是手感？',
+    options: [
+      { value: 'feel',       label: '✋ 手感优先', desc: '用起来舒服最重要' },
+      { value: 'looks',      label: '🎨 外观优先', desc: '要好看，有设计感' },
+      { value: 'both',       label: '🤝 都很重要', desc: '内外兼修' },
+      { value: 'price_first',label: '💰 性价比优先', desc: '实用就好' },
+    ]
+  },
+  {
+    id: 'environment',
+    type: 'radio',
+    title: '你主要在什么环境用？',
+    sub: '影响推荐的选择',
+    options: [
+      { value: 'home',     label: '🏠 家里', desc: '自由，不怕吵' },
+      { value: 'office',   label: '🏢 办公室', desc: '建议安静一些' },
+      { value: 'dorm',     label: '🎒 宿舍', desc: '室友在，不宜太响' },
+      { value: 'public',   label: '☕ 咖啡厅/图书馆', desc: '需要静音+便携' },
+      { value: 'multiple', label: '🔄 多个场所', desc: '需要便携' },
+    ]
+  },
+  {
+    id: 'experience',
+    type: 'radio',
+    title: '你之前用过机械键盘吗？',
+    sub: '用来判断推荐保守还是大胆的方案',
+    options: [
+      { value: 'never',   label: '❌ 没用过，这是第一次' },
+      { value: 'tried',   label: '🔍 用过朋友的 / 试过' },
+      { value: 'yes_one', label: '✅ 用过一把，想换换口味' },
+      { value: 'yes_many',label: '🏆 用过好几把，很了解' },
+    ]
+  },
+];
+
+// ================================================================
+//  推荐引擎
+// ================================================================
+function generateRecommendation(answers) {
+  const budget = answers.budget || '400to800';
+  const useCases = answers.use_case || ['typing'];
+  const layout = answers.layout || 'no_pref';
+  const switchPref = answers.switch_pref || 'linear';
+  const switchFeel = answers.switch_feel || null;
+  const wireless = answers.wireless || 'nice_have';
+  const features = answers.features || [];
+  const sound = answers.sound || null;
+  const environment = answers.environment || 'home';
+  const experience = answers.experience || 'never';
+  const currentKb = answers.current_keyboard || 'none_yet';
+  const painPoints = answers.pain_point || [];
+  const numpad = answers.numpad || 'no';
+  const appearance = answers.appearance || 'feel';
+
+  const isGaming = useCases.includes('gaming');
+  const isTyping = useCases.includes('typing') || useCases.includes('office');
+  const isCreative = useCases.includes('creative');
+
+  const budgetRanges = { lt200: [0, 150], '200to400': [150, 400], '400to800': [400, 800], '800to1500': [800, 1500], '1500to3000': [1500, 3000], gt3000: [3000, 99999] };
+  const [budgetLow, budgetHigh] = budgetRanges[budget] || [400, 800];
+
+  // 配列
+  let recLayout = layout;
+  if (recLayout === 'no_pref') {
+    if (numpad === 'yes') recLayout = 'full';
+    else if (isGaming && !isTyping) recLayout = 'tkl';
+    else recLayout = 'pct75';
+  }
+
+  // 轴体
+  let recSwitchType = switchPref;
+  if (recSwitchType === 'describe') {
+    if (switchFeel === 'smooth') recSwitchType = 'linear';
+    else if (switchFeel === 'bumpy') recSwitchType = 'tactile';
+    else if (switchFeel === 'typewriter') recSwitchType = 'clicky';
+    else if (switchFeel === 'quiet') recSwitchType = 'silent';
+    else recSwitchType = 'linear';
+  }
+
+  const budgetLabel = { lt200: '150元以下', '200to400': '150~400元', '400to800': '400~800元', '800to1500': '800~1500元', '1500to3000': '1500~3000元', gt3000: '3000元以上' };
+
+  const tags = [];
+  const layoutNames = { full:'全尺寸', tkl:'TKL 87键', pct75:'75% 紧凑', pct65:'65%', pct60:'60%', no_pref:'灵活' };
+  tags.push(layoutNames[recLayout] || '全尺寸');
+  const switchNames = { linear:'线性轴', tactile:'段落轴', clicky:'清脆轴', silent:'静音轴', magnetic:'磁轴', describe:'待定' };
+  tags.push(switchNames[recSwitchType] || '线性轴');
+  if (wireless === 'must_wireless') tags.push('无线');
+  if (features.includes('hotswap')) tags.push('热插拔');
+  if (features.includes('rgb')) tags.push('RGB');
+  if (features.includes('knob')) tags.push('旋钮');
+  if (environment === 'office' || environment === 'dorm') tags.push('安静');
+  if (isGaming) tags.push('电竞');
+  if (isTyping) tags.push('打字');
+
+  const models = generateModelRecommendations({
+    budget, budgetLow, budgetHigh, recLayout, recSwitchType, wireless,
+    features, isGaming, isTyping, environment, experience, currentKb, painPoints, sound, appearance
+  });
+
+  const reasons = [];
+  const useCaseText = useCases.map(function(u) {
+    var map = { typing:'打字', gaming:'游戏', office:'办公', creative:'创作', daily:'日常' };
+    return map[u] || u;
+  }).join('、');
+  reasons.push('你主要用键盘做「' + useCaseText + '」');
+  reasons.push('建议 ' + layoutNames[recLayout] + ' 配列');
+  if (switchPref === 'describe') {
+    reasons.push('根据你的手感描述，推荐 ' + switchNames[recSwitchType]);
+  }
+  if (environment === 'office') reasons.push('办公室使用建议选静音一点的轴体');
+  if (isGaming && recSwitchType === 'linear') reasons.push('游戏场景推荐线性轴，触发快');
+  if (!answers.switch_pref || answers.switch_pref === 'describe') {
+    // ok
+  }
+
+  var details = [];
+  details.push({ emoji: '⌨️', label: '配列', value: layoutNames[recLayout] || '全尺寸' });
+  details.push({ emoji: '🎯', label: '轴体', value: switchNames[recSwitchType] || '线性轴' });
+  details.push({ emoji: '💰', label: '预算区间', value: budgetLabel[budget] || '400~800元' });
+  details.push({ emoji: '🔗', label: '连接方式', value: wireless === 'must_wireless' ? '无线优先' : wireless === 'wired_only' ? '有线' : '双模' });
+  if (features.length > 0) {
+    var fn = { hotswap:'热插拔', rgb:'RGB灯效', knob:'旋钮', screen:'小屏幕', qmk_via:'可编程', wireless_charge:'无线充电' };
+    details.push({ emoji: '⚙️', label: '功能', value: features.filter(function(f) { return fn[f]; }).map(function(f) { return fn[f]; }).join('、') });
+  }
+  if (sound && sound !== 'no_care') {
+    var sn = { thock:'闷厚', creamy:'奶油', clack:'清脆', silent_s:'静音' };
+    details.push({ emoji: '🔊', label: '声音偏好', value: sn[sound] || '无所谓' });
+  }
+
+  return { tags: tags, models: models, reasons: reasons, details: details, budgetLabel: budgetLabel[budget] };
+}
+
+// ---- 型号推荐引擎 ----
+function generateModelRecommendations(opts) {
+  var budget = opts.budget, recLayout = opts.recLayout, recSwitchType = opts.recSwitchType;
+  var wireless = opts.wireless, features = opts.features, isGaming = opts.isGaming, isTyping = opts.isTyping;
+  var environment = opts.environment, experience = opts.experience, painPoints = opts.painPoints, sound = opts.sound, appearance = opts.appearance;
+
+  var DATABASE = {
+    lt200: [
+      { name: 'RK R87', price: '99~139', layouts: ['tkl'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB'], reason: '百元价位最强，热插拔+RGB，入门首选', features: ['hotswap', 'rgb'] },
+      { name: '达尔优 EK75', price: '129~179', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '旋钮'], reason: '75%配列+旋钮，性价比极高', features: ['hotswap', 'rgb', 'knob'] },
+      { name: '狼蛛 F87 Pro', price: '149~199', layouts: ['tkl', 'pct75'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket'], reason: 'Gasket结构手感软弹', features: ['hotswap', 'rgb'] },
+      { name: 'VGN N75', price: '99~159', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB'], reason: '75配列入门卷王', features: ['hotswap', 'rgb'] },
+    ],
+    '200to400': [
+      { name: 'Keychron V1', price: '298~358', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'QMK/VIA', 'Gasket'], reason: '开源固件+全键可编程', features: ['hotswap', 'rgb', 'qmk_via'] },
+      { name: 'RK R75', price: '199~279', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '旋钮'], reason: '75%+旋钮+热插拔，性价比标杆', features: ['hotswap', 'rgb', 'knob'] },
+      { name: 'NuPhy Air60 V2', price: '399~499', layouts: ['pct60'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['矮轴', '无线', '便携'], reason: '超薄矮轴无线，便携首选', features: [] },
+      { name: 'MCHOSE G75', price: '249~329', layouts: ['pct75'], switches: ['linear', 'tactile', 'magnetic'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '磁轴可选'], reason: '支持磁轴版本', features: ['hotswap', 'rgb'] },
+      { name: 'Leobog Hi75', price: '239~299', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', 'Gasket', '铝壳'], reason: '百元价位铝壳体', features: ['hotswap', 'rgb'] },
+    ],
+    '400to800': [
+      { name: 'Keychron V3 Max', price: '548~658', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', 'QMK/VIA', '三模'], reason: '三模+QMK，程序员退烧之选', features: ['hotswap', 'rgb', 'qmk_via'] },
+      { name: 'NuPhy Halo75', price: '699~899', layouts: ['pct75'], switches: ['linear', 'tactile', 'silent'], wireless: ['must_wireless', 'nice_have'], tags: ['热插拔', 'RGB', '三模', '设计感'], reason: '颜值天花板，三模+热插拔', features: ['hotswap', 'rgb'] },
+      { name: 'Ducky One 3', price: '599~799', layouts: ['full', 'tkl', 'pct65'], switches: ['linear', 'tactile', 'clicky', 'silent'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '经典'], reason: '经典品牌，做工扎实', features: ['hotswap', 'rgb'] },
+      { name: 'Wooting 60HE+', price: '799~999', layouts: ['pct60'], switches: ['magnetic'], wireless: ['wired_only'], tags: ['磁轴', '电竞'], reason: '电竞天花板，磁轴可调键程', features: [] },
+      { name: '阿米洛 娘系列', price: '699~899', layouts: ['full', 'tkl', 'pct75'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['设计感'], reason: '国潮设计天花板', features: [] },
+      { name: 'MonsGeek M1', price: '499~699', layouts: ['tkl', 'pct75'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['热插拔', 'RGB', '铝壳', 'QMK'], reason: '铝壳+Gasket，声音手感俱佳', features: ['hotswap', 'rgb', 'qmk_via'] },
+    ],
+    '800to1500': [
+      { name: 'Leopold FC900RBT/FC750RBT', price: '899~1199', layouts: ['full', 'tkl'], switches: ['linear', 'tactile', 'silent'], wireless: ['nice_have'], tags: ['蓝牙', '做工顶级'], reason: '量产做工天花板，退烧之选', features: [] },
+      { name: 'Filco 圣手二代', price: '1099~1399', layouts: ['full', 'tkl'], switches: ['linear', 'tactile', 'clicky'], wireless: ['wired_only'], tags: ['经典', '耐用'], reason: '键盘界"劳力士"，十年不坏', features: [] },
+      { name: 'HHKB Professional', price: '1499~2199', layouts: ['pct60'], switches: ['es_capacitive'], wireless: ['wired_only'], tags: ['静电容', '程序员'], reason: '程序员信仰之选', features: [] },
+      { name: 'Wooting 80HE', price: '1199~1499', layouts: ['tkl'], switches: ['magnetic'], wireless: ['wired_only'], tags: ['磁轴', '电竞', 'TKL'], reason: '磁轴终极版', features: [] },
+      { name: 'Keychron Q1 Pro', price: '999~1299', layouts: ['pct75'], switches: ['linear', 'tactile'], wireless: ['must_wireless', 'nice_have'], tags: ['铝壳', 'QMK/VIA', '三模'], reason: '全铝机身+三模', features: ['hotswap', 'qmk_via'] },
+    ],
+    '1500to3000': [
+      { name: 'HHKB Studio/Hybrid', price: '1999~2699', layouts: ['pct60'], switches: ['es_capacitive'], wireless: ['must_wireless'], tags: ['静电容', '蓝牙'], reason: '静电容王者，退烧终极之选', features: [] },
+      { name: 'Realforce GX1', price: '1799~2499', layouts: ['tkl'], switches: ['es_capacitive'], wireless: ['wired_only'], tags: ['静电容', '旗舰'], reason: '日系静电容顶级做工', features: [] },
+      { name: '客制化套件', price: '1500~3000', layouts: ['pct65'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['客制化', '铝壳', 'Gasket'], reason: '自己组一把独一无二的键盘', features: ['hotswap', 'qmk_via'] },
+    ],
+    gt3000: [
+      { name: '客制化旗舰', price: '3000~10000+', layouts: ['tkl', 'pct65', 'alice'], switches: ['linear', 'tactile'], wireless: ['wired_only'], tags: ['收藏级', '客制化'], reason: '键盘圈终极形态', features: ['qmk_via'] },
+      { name: 'HHKB Professional HG', price: '3499~4499', layouts: ['pct60'], switches: ['es_capacitive'], wireless: ['wired_only'], tags: ['静电容', '旗舰'], reason: '静电容中的劳斯莱斯', features: [] },
+    ]
+  };
+
+  var budgetLevels = ['lt200', '200to400', '400to800', '800to1500', '1500to3000', 'gt3000'];
+  var levelIdx = budgetLevels.indexOf(budget);
+  if (levelIdx === -1) levelIdx = 2;
+
+  var pool = (DATABASE[budget] || []).slice();
+  if (levelIdx > 0) pool = pool.concat(DATABASE[budgetLevels[levelIdx - 1]] || []);
+  if (levelIdx < budgetLevels.length - 1) pool = pool.concat(DATABASE[budgetLevels[levelIdx + 1]] || []);
+  pool = pool.filter(function(item, idx, self) { return self.findIndex(function(i) { return i.name === item.name; }) === idx; });
+
+  var scored = pool.map(function(item) {
+    var score = 0;
+    if (item.layouts.indexOf(recLayout) !== -1) score += 5;
+    if (recLayout === 'no_pref' && item.layouts.indexOf('pct75') !== -1) score += 3;
+    if (item.switches.indexOf(recSwitchType) !== -1) score += 5;
+    if (recSwitchType === 'magnetic' && item.switches.indexOf('magnetic') !== -1) score += 10;
+    if (recSwitchType === 'silent' && item.switches.indexOf('silent') !== -1) score += 3;
+    if (item.wireless.indexOf(wireless) !== -1) score += 4;
+    if (wireless === 'must_wireless' && item.wireless.indexOf('must_wireless') !== -1) score += 3;
+    if (features.length > 0) {
+      score += features.filter(function(f) { return item.features.indexOf(f) !== -1; }).length * 2;
+    }
+    if (isGaming) {
+      if (item.switches.indexOf('magnetic') !== -1) score += 3;
+      if (item.tags.indexOf('电竞') !== -1) score += 3;
+      if (item.layouts.indexOf('tkl') !== -1 || item.layouts.indexOf('pct60') !== -1) score += 2;
+    }
+    if (isTyping) {
+      if (item.tags.indexOf('Gasket') !== -1 || item.tags.indexOf('铝壳') !== -1) score += 2;
+    }
+    if (environment === 'office' || environment === 'dorm') {
+      if (item.switches.indexOf('silent') !== -1) score += 3;
+      if (item.tags.indexOf('静音') !== -1) score += 2;
+    }
+    if (experience === 'never' && parseInt(item.price) < 500) score += 2;
+    if (appearance === 'looks' && item.tags.indexOf('设计感') !== -1) score += 3;
+    if (painPoints.indexOf('sound') !== -1 && item.tags.some(function(t) { return ['Gasket', '铝壳', '静音'].indexOf(t) !== -1; })) score += 2;
+    if (painPoints.indexOf('wireless') !== -1 && item.wireless.indexOf('must_wireless') !== -1) score += 3;
+    if (painPoints.indexOf('feel') !== -1 && item.tags.indexOf('Gasket') !== -1) score += 2;
+    return { item: item, score: score };
+  });
+
+  scored.sort(function(a, b) { return b.score - a.score; });
+  var top3 = scored.slice(0, 3);
+  var labels = ['最佳推荐', '备选方案', '也不错'];
+  top3.forEach(function(entry, idx) {
+    entry.item.label = labels[idx] || '';
+  });
+  return top3.map(function(entry) { return entry.item; });
+}
+
+// ================================================================
+//  页面渲染
+// ================================================================
+var currentIndex = 0;
+var answers = {};
+var submitted = false;
+
+function $(s) { return document.querySelector(s); }
+function $$(s) { return document.querySelectorAll(s); }
+
+function showToast(msg, duration) {
+  if (!duration) duration = 2000;
+  var t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, duration);
+}
+
+function getAnswerValue(id) {
+  var q = QUESTIONS.filter(function(q) { return q.id === id; })[0];
+  if (!q) return null;
+  if (q.type === 'text') {
+    var el = document.getElementById('input_' + id);
+    return el ? el.value.trim() : '';
+  }
+  var checked = document.querySelectorAll('input[name="q_' + id + '"]:checked');
+  if (q.type === 'radio') return checked.length ? checked[0].value : null;
+  var result = [];
+  for (var i = 0; i < checked.length; i++) { result.push(checked[i].value); }
+  return result;
+}
+
+function isAnswered(id) {
+  var val = getAnswerValue(id);
+  if (val === null || val === undefined) return false;
+  if (typeof val === 'string') return val.length > 0;
+  if (Array.isArray(val)) return val.length > 0;
+  return false;
+}
+
+function shouldShow(q) {
+  if (!q.showIf) return true;
+  var parentVal = answers[q.showIf.id];
+  if (!parentVal) return false;
+  var vals = Array.isArray(parentVal) ? parentVal : [parentVal];
+  for (var i = 0; i < q.showIf.values.length; i++) {
+    if (vals.indexOf(q.showIf.values[i]) !== -1) return true;
+  }
+  return false;
+}
+
+function getVisibleCards() {
+  var cards = [];
+  for (var i = 0; i < QUESTIONS.length; i++) {
+    if (!QUESTIONS[i].id) continue;
+    if (shouldShow(QUESTIONS[i])) cards.push(i);
+  }
+  return cards;
+}
+
+function renderQuestions() {
+  var container = $('#surveyContainer');
+  var html = '';
+  var qNum = 0;
+
+  for (var idx = 0; idx < QUESTIONS.length; idx++) {
+    var q = QUESTIONS[idx];
+    if (!q.id) continue;
+    qNum++;
+    var isMulti = q.type === 'checkbox';
+
+    html += '<div class="question-card" id="card_' + idx + '" data-index="' + idx + '" style="display:none;">';
+    html += '  <div class="q-number">' + qNum + '</div>';
+    html += '  <div class="q-title">' + q.title + '</div>';
+    if (q.sub) html += '  <div class="q-sub">' + q.sub + '</div>';
+    html += '  <div class="options">';
+
+    if (q.type === 'text') {
+      html += '<textarea class="text-input" id="input_' + q.id + '" placeholder="' + (q.placeholder || '请输入...') + '" rows="2"></textarea>';
+    } else {
+      for (var oi = 0; oi < q.options.length; oi++) {
+        var opt = q.options[oi];
+        var inputType = isMulti ? 'checkbox' : 'radio';
+        html += '<div class="option-item" data-q="' + q.id + '" data-value="' + opt.value + '" data-multi="' + (isMulti ? 1 : 0) + '">';
+        html += '  <input type="' + inputType + '" name="q_' + q.id + '" value="' + opt.value + '" style="display:none">';
+        html += '  <span class="' + (isMulti ? 'box' : 'dot') + '"></span>';
+        html += '  <span class="label">' + opt.label + (opt.desc ? '<span class="desc"> — ' + opt.desc + '</span>' : '') + '</span>';
+        html += '</div>';
+      }
+    }
+
+    html += '  </div>'; // .options
+    html += '  <div class="nav-buttons">';
+    html += '    <div class="left-group">';
+    html += '      <button class="btn btn-secondary" onclick="prevQuestion()" id="prevBtn_' + idx + '" style="min-width:60px;">⬅</button>';
+    html += '    </div>';
+    html += '    <button class="btn-skip" onclick="skipQuestion()" id="skipBtn_' + idx + '" style="display:inline-block;">⏭ 跳过</button>';
+    html += '    <div class="right-group">';
+    html += '      <button class="btn btn-primary" id="btnNext_' + idx + '" onclick="nextQuestion()">下一步</button>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+
+  // 绑定选项点击（用div代替label避免浏览器默认行为干扰）
+  var items = $$('.option-item');
+  for (var i = 0; i < items.length; i++) {
+    (function(el) {
+      el.addEventListener('click', function(e) {
+        if (e.target.tagName === 'INPUT') return;
+        var input = el.querySelector('input');
+        if (!input) return;
+        var isMulti = el.dataset.multi === '1';
+
+        if (isMulti) {
+          input.checked = !input.checked;
+        } else {
+          var name = input.name;
+          var allRadios = document.querySelectorAll('input[name="' + name + '"]');
+          for (var r = 0; r < allRadios.length; r++) {
+            allRadios[r].checked = false;
+            var parent = allRadios[r].closest('.option-item');
+            if (parent) parent.classList.remove('selected');
+          }
+          input.checked = true;
+        }
+        if (input.checked) el.classList.add('selected');
+        else el.classList.remove('selected');
+
+        updateCardState();
+        updateNextButton();
+      });
+    })(items[i]);
+  }
+
+  // 文本输入
+  var inputs = $$('.text-input');
+  for (var t = 0; t < inputs.length; t++) {
+    inputs[t].addEventListener('input', function() { updateCardState(); updateNextButton(); });
+  }
+
+  jumpToFirst();
+  updateProgress();
+  updateNextButton();
+}
+
+function jumpToFirst() {
+  var visible = getVisibleCards();
+  if (visible.length === 0) return;
+  currentIndex = visible[0];
+  showCard(currentIndex);
+}
+
+function findNext(from) {
+  var visible = getVisibleCards();
+  var pos = visible.indexOf(from);
+  if (pos === -1 || pos + 1 >= visible.length) return null;
+  return visible[pos + 1];
+}
+
+function findPrev(from) {
+  var visible = getVisibleCards();
+  var pos = visible.indexOf(from);
+  if (pos <= 0) return null;
+  return visible[pos - 1];
+}
+
+function showCard(index) {
+  var cards = $$('.question-card');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].classList.remove('active');
+    cards[i].style.display = 'none';
+  }
+
+  var card = document.getElementById('card_' + index);
+  if (card) {
+    card.style.display = 'block';
+    requestAnimationFrame(function() { card.classList.add('active'); });
+  }
+  currentIndex = index;
+  updateProgress();
+  updateNextButton();
+  updateCardState();
+
+  var prevBtn = document.getElementById('prevBtn_' + index);
+  if (prevBtn) {
+    var visible = getVisibleCards();
+    prevBtn.disabled = visible.indexOf(index) <= 0;
+  }
+
+  var nextBtn = document.getElementById('btnNext_' + index);
+  if (nextBtn) {
+    var v = getVisibleCards();
+    var isLast = v.indexOf(index) >= v.length - 1;
+    nextBtn.textContent = isLast ? '查看推荐' : '下一步';
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateCardState() {
+  var cards = $$('.question-card');
+  for (var i = 0; i < cards.length; i++) {
+    var idx = parseInt(cards[i].dataset.index);
+    var q = QUESTIONS[idx];
+    if (!q) continue;
+    if (isAnswered(q.id)) cards[i].classList.add('answered');
+    else cards[i].classList.remove('answered');
+  }
+}
+
+function updateNextButton() {
+  var q = QUESTIONS[currentIndex];
+  if (!q) return;
+  var btn = document.getElementById('btnNext_' + currentIndex);
+  if (!btn) return;
+  var hasAnswer = isAnswered(q.id);
+  var isCheckbox = q.type === 'checkbox';
+  var isText = q.type === 'text';
+  // checkbox: 即使没选也可以继续（可跳过）
+  // text: 选填
+  // radio: 必须选一个
+  btn.disabled = !isCheckbox && !isText && !hasAnswer;
+}
+
+function updateProgress() {
+  var visible = getVisibleCards();
+  var total = visible.length;
+  var answered = 0;
+  for (var i = 0; i < visible.length; i++) {
+    if (isAnswered(QUESTIONS[visible[i]].id)) answered++;
+  }
+  var pos = visible.indexOf(currentIndex);
+  var pct = total > 0 ? Math.round(((pos + 1) / total) * 100) : 0;
+  $('#progressFill').style.width = pct + '%';
+  $('#progressText').textContent = answered + ' / ' + total;
+}
+
+// ================================================================
+//  导航
+// ================================================================
+function nextQuestion() {
+  var q = QUESTIONS[currentIndex];
+  if (!q) return;
+  // radio 必须选，checkbox/text 允许跳过
+  if (q.type === 'radio' && !isAnswered(q.id)) {
+    showToast('请先回答本题');
+    return;
+  }
+  answers[q.id] = getAnswerValue(q.id);
+
+  var next = findNext(currentIndex);
+  if (next === null) { submitSurvey(); return; }
+  showCard(next);
+}
+
+function prevQuestion() {
+  var q = QUESTIONS[currentIndex];
+  if (q && q.id) answers[q.id] = getAnswerValue(q.id);
+  var prev = findPrev(currentIndex);
+  if (prev !== null) showCard(prev);
+}
+
+function skipQuestion() {
+  var q = QUESTIONS[currentIndex];
+  if (!q) return;
+  // 跳过：不保存答案，直接去下一题
+  var next = findNext(currentIndex);
+  if (next === null) { submitSurvey(); return; }
+  showCard(next);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    var active = document.querySelector('.question-card.active .btn-primary');
+    if (active && !active.disabled) { e.preventDefault(); active.click(); }
+  }
+});
+
+// ================================================================
+//  提交 + 推荐
+// ================================================================
+function submitSurvey() {
+  for (var i = 0; i < QUESTIONS.length; i++) {
+    var q = QUESTIONS[i];
+    if (q.id && !(q.id in answers)) answers[q.id] = getAnswerValue(q.id);
+  }
+
+  var record = {
+    id: Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6),
+    timestamp: new Date().toLocaleString('zh-CN'),
+    timestampISO: new Date().toISOString()
+  };
+  for (var key in answers) { if (answers.hasOwnProperty(key)) record[key] = answers[key]; }
+
+  var allData = JSON.parse(localStorage.getItem('kb_reco_data') || '[]');
+  allData.push(record);
+  localStorage.setItem('kb_reco_data', JSON.stringify(allData));
+
+  submitted = true;
+
+  var rec = generateRecommendation(answers);
+  renderRecommendation(rec);
+
+  $('#surveyContainer').style.display = 'none';
+  $('#resultScreen').classList.add('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('推荐已生成！');
+}
+
+function renderRecommendation(rec) {
+  var container = $('#recommendationContent');
+  var html = '';
+
+  // 摘要卡
+  html += '<div class="rec-card">';
+  html += '  <div class="tag">你的键盘画像</div>';
+  html += '  <div class="rec-tags" style="margin-bottom:12px;">';
+  for (var t = 0; t < rec.tags.length; t++) {
+    html += '<span class="rec-tag">' + rec.tags[t] + '</span>';
+  }
+  html += '  </div>';
+  html += '  <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;line-height:1.8;">';
+  for (var r = 0; r < rec.reasons.length; r++) {
+    html += '&#10022; ' + rec.reasons[r] + '<br>';
+  }
+  html += '  </div>';
+  html += '  <div class="rec-detail">';
+  for (var d = 0; d < rec.details.length; d++) {
+    html += '<div class="rec-detail-item"><span class="emoji">' + rec.details[d].emoji + '</span><span style="color:var(--text-secondary);width:60px;flex-shrink:0;">' + rec.details[d].label + '</span><span>' + rec.details[d].value + '</span></div>';
+  }
+  html += '  </div>';
+  html += '</div>';
+
+  if (rec.models && rec.models.length > 0) {
+    var rankEmojis = ['🥇', '🥈', '🥉'];
+    html += '<div class="rec-models">';
+    html += '  <h4>为你推荐的键盘</h4>';
+    for (var m = 0; m < rec.models.length; m++) {
+      var mdl = rec.models[m];
+      html += '<div class="model-item">';
+      html += '  <div class="rank">' + (rankEmojis[m] || '') + '</div>';
+      html += '  <div class="info">';
+      html += '    <div class="name">' + mdl.name + ' <span style="font-size:12px;color:var(--text-secondary);font-weight:400;">' + (mdl.label || '') + '</span></div>';
+      html += '    <div class="reason">' + mdl.reason + '</div>';
+      html += '  </div>';
+      html += '  <div class="price">' + mdl.price + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    html += '<div style="font-size:12px;color:var(--text-secondary);padding:8px 4px;text-align:center;">建议去实体店试打或看详细评测后再决定</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ================================================================
+//  重置
+// ================================================================
+function resetSurvey() {
+  if (submitted && !confirm('将清空当前回答，重新测评？')) return;
+  answers = {};
+  submitted = false;
+  currentIndex = 0;
+  $('#surveyContainer').style.display = 'block';
+  $('#resultScreen').classList.remove('show');
+  $('#shareSection').classList.remove('show');
+  $('#qrContainer').style.display = 'none';
+
+  var radios = $$('input[type="radio"]');
+  for (var r = 0; r < radios.length; r++) radios[r].checked = false;
+  var checks = $$('input[type="checkbox"]');
+  for (var c = 0; c < checks.length; c++) checks[c].checked = false;
+  var opts = $$('.option-item');
+  for (var o = 0; o < opts.length; o++) opts[o].classList.remove('selected');
+  var txts = $$('.text-input');
+  for (var t = 0; t < txts.length; t++) txts[t].value = '';
+
+  jumpToFirst();
+  updateCardState();
+}
+
+// ================================================================
+//  分享
+// ================================================================
+function scrollToShare() {
+  $('#shareSection').classList.add('show');
+  document.getElementById('shareSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function copyLink() {
+  var url = window.location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() { showToast('链接已复制，去微信粘贴分享吧！'); }).catch(function() { fallbackCopy(url); });
+  } else { fallbackCopy(url); }
+}
+
+function fallbackCopy(t) {
+  var ta = document.createElement('textarea');
+  ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+function showQRCode() {
+  var c = $('#qrContainer');
+  if (c.style.display !== 'none') { c.style.display = 'none'; return; }
+  var url = encodeURIComponent(window.location.href);
+  c.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + url + '" alt="二维码" style="width:180px;border-radius:12px;margin:0 auto;display:block;background:white;padding:8px;"><p style="font-size:13px;color:var(--text-secondary);margin-top:8px;">长按或截图保存</p>';
+  c.style.display = 'block';
+}
+
+function exportResult() {
+  var allData = JSON.parse(localStorage.getItem('kb_reco_data') || '[]');
+  if (!allData.length) { showToast('暂无数据'); return; }
+  var last = allData[allData.length - 1];
+  var text = '键盘选型助手 - 我的结果\n' + '提交时间: ' + last.timestamp + '\n' + '---------------\n\n';
+  for (var i = 0; i < QUESTIONS.length; i++) {
+    var q = QUESTIONS[i];
+    if (!q.id) continue;
+    var val = last[q.id];
+    if (!val || (Array.isArray(val) && !val.length)) continue;
+    text += q.title + '\n';
+    if (Array.isArray(val)) {
+      var labels = [];
+      for (var v = 0; v < val.length; v++) {
+        var found = null;
+        if (q.options) {
+          for (var o = 0; o < q.options.length; o++) {
+            if (q.options[o].value === val[v]) { found = q.options[o].label.split('—')[0].trim(); break; }
+          }
+        }
+        labels.push(found || val[v]);
+      }
+      text += '  ' + labels.join('、') + '\n';
+    } else {
+      var label = null;
+      if (q.options) {
+        for (var o2 = 0; o2 < q.options.length; o2++) {
+          if (q.options[o2].value === val) { label = q.options[o2].label.split('—')[0].trim(); break; }
+        }
+      }
+      text += '  ' + (label || val) + '\n';
+    }
+    text += '\n';
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { showToast('已复制到剪贴板'); }).catch(function() { fallbackCopy(text); });
+  } else { fallbackCopy(text); }
+}
+
+function exportAllData() {
+  var d = JSON.parse(localStorage.getItem('kb_reco_data') || '[]');
+  if (!d.length) { showToast('暂无数据'); return; }
+  var blob = new Blob([JSON.stringify(d, null, 2)], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '键盘推荐数据_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('已导出 ' + d.length + ' 条数据');
+}
+
+// ================================================================
+//  启动
+// ================================================================
+document.addEventListener('DOMContentLoaded', renderQuestions);
+</script>
+</body>
+</html>
