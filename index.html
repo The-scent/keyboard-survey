@@ -346,9 +346,10 @@
     <div class="share-image-modal">
       <button class="close-btn" onclick="document.getElementById('shareImageOverlay').classList.remove('show')">&times;</button>
       <div id="resultCanvasContainer"></div>
-      <p style="font-size:13px;color:#999;margin-top:8px;">截图或长按图片保存，分享到微信</p>
+      <p style="font-size:14px;color:#E4393C;font-weight:600;margin-top:10px;" id="saveHint">👆 长按图片即可保存到手机</p>
+      <p style="font-size:12px;color:#999;margin-top:2px;">截图也可以，分享给朋友</p>
       <div class="actions">
-        <button class="btn" style="background:#07C160;color:white;" onclick="saveResultImage()">💾 保存图片</button>
+        <button class="btn" style="background:#07C160;color:white;display:none;" id="saveBtn" onclick="saveResultImage()">💾 保存图片</button>
         <button class="btn btn-outline" onclick="document.getElementById('shareImageOverlay').classList.remove('show')" style="border:2px solid var(--border);color:var(--text-secondary);">关闭</button>
       </div>
     </div>
@@ -1597,14 +1598,38 @@ function shareResultImage() {
   ctx.font = '14px sans-serif';
   ctx.fillText('由「键盘选型助手」生成', w/2, h - 30);
 
+  // 将 canvas 转为 img（微信浏览器不支持 download，但支持长按保存图片）
+  var dataUrl = canvas.toDataURL('image/png');
   var container = $('#resultCanvasContainer');
   container.innerHTML = '';
-  container.appendChild(canvas);
-  canvas.style.width = '100%';
-  canvas.style.height = 'auto';
-  canvas.style.maxWidth = '360px';
-  canvas.style.margin = '0 auto';
-  canvas.style.borderRadius = '12px';
+  var img = document.createElement('img');
+  img.src = dataUrl;
+  img.style.width = '100%';
+  img.style.height = 'auto';
+  img.style.maxWidth = '360px';
+  img.style.margin = '0 auto';
+  img.style.display = 'block';
+  img.style.borderRadius = '12px';
+  img.style.background = 'white';
+  container.appendChild(img);
+
+  // 微信浏览器检测：隐藏「保存图片」按钮（微信禁止 JS 下载），显示长按提示
+  var isWechat = navigator.userAgent.toLowerCase().indexOf('micromessenger') !== -1;
+  var saveBtn = document.getElementById('saveBtn');
+  var saveHint = document.getElementById('saveHint');
+  if (isWechat) {
+    if (saveBtn) saveBtn.style.display = 'none';
+    if (saveHint) {
+      saveHint.innerHTML = '☝️ 长按图片选择「保存到手机」';
+      saveHint.style.color = '#E4393C';
+    }
+  } else {
+    if (saveBtn) saveBtn.style.display = 'inline-block';
+    if (saveHint) {
+      saveHint.innerHTML = '💻 右键点击图片可「另存为」';
+      saveHint.style.color = '#999';
+    }
+  }
 
   document.getElementById('shareImageOverlay').classList.add('show');
 }
@@ -1626,11 +1651,17 @@ function roundRectFill(ctx, x, y, w, h, r) {
 
 function saveResultImage() {
   if (!_lastCanvas) { showToast('请先生成图片'); return; }
-  var link = document.createElement('a');
-  link.download = '键盘推荐结果_' + new Date().toISOString().slice(0,10) + '.png';
-  link.href = _lastCanvas.toDataURL('image/png');
-  link.click();
-  showToast('图片已保存');
+  try {
+    var link = document.createElement('a');
+    link.download = '键盘推荐结果_' + new Date().toISOString().slice(0,10) + '.png';
+    link.href = _lastCanvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('图片已保存');
+  } catch(e) {
+    showToast('请在图片上右键选择「另存为」');
+  }
 }
 
 // ================================================================
